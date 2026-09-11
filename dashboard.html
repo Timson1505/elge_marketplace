@@ -136,6 +136,32 @@
         </label>
         <label>Сүрөттөмө <textarea name="description" rows="3"></textarea></label>
 
+        <label>Сүрөттөр
+  <div class="image-upload">
+    <input type="file" id="imageFile" accept="image/*" multiple hidden>
+    <button type="button" class="upload-btn" id="pickImagesBtn">
+      📷 Файл тандоо (JPG, PNG, WebP)
+    </button>
+    <p class="upload-hint" id="uploadStatus"></p>
+  </div>
+</label>
+
+<!-- Скрытое поле, куда складываются URL загруженных фото -->
+<input type="hidden" name="images" id="imagesField">
+
+<!-- Превью загруженных фото -->
+<div class="image-preview" id="imagePreview"></div>
+
+<!-- Резервный вариант — ручной ввод URL -->
+<details style="margin-bottom:10px">
+  <summary style="cursor:pointer; color:#6d7885; font-size:13px">
+    Же URL аркылуу кошуу
+  </summary>
+  <textarea id="imagesUrlFallback" rows="3"
+    placeholder="https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg"
+    style="margin-top:6px"></textarea>
+</details>
+
         <button class="primary-button wide" type="submit" id="saveBtn">Сактоо</button>
         <button type="button" class="add-button hidden" id="cancelEdit" style="margin-top:8px">Жокко чыгаруу</button>
         <p class="auth-error" id="formErr"></p>
