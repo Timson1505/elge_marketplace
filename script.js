@@ -221,52 +221,42 @@ function closeCart() {
 }
 
 /* ============ CHECKOUT (QR) ============ */
-$("#closeCheckout").addEventListener("click", closeCheckout);
-$("#checkoutModal").addEventListener("click", e => { if (e.target === $("#checkoutModal")) closeCheckout(); });
+function showCheckoutStep(step) {
+  $("#checkoutStepForm").classList.toggle("hidden", step !== "form");
+  $("#checkoutStepPay").classList.toggle("hidden", step !== "pay");
+  $("#checkoutStepDone").classList.toggle("hidden", step !== "done");
+}
 
-$("#checkoutForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const f = e.target;
-
-  const items = state.cart.map(i => {
-    const p = state.products.find(x => x.id === i.id);
-    return { id: p.id, name: p.name, price: p.price, quantity: i.quantity };
-  });
+function openCheckout() {
+  if (!state.cart.length) { showToast("Себет бош"); return; }
+  closeCart();
   const total = getCartTotal();
-  const notes = `Дарек: ${f.address.value.trim()}\n${f.note.value.trim()}`.trim();
+  $("#checkoutTotal").textContent = money(total);
+  $("#payAmount").textContent = money(total);
+  showCheckoutStep("form");
 
-  try {
-    const order = await createOrder({
-      userId: state.user ? state.user.id : null,
-      customerName: f.customer_name.value.trim(),
-      customerPhone: f.customer_phone.value.trim(),
-      notes,
-      items, total
-    });
-    state.currentOrderId = order.id;
-    $("#payAmount").textContent = money(total);
-    showCheckoutStep("pay");
-  } catch (ex) {
-    console.error(ex);
-    showToast("Ката: " + ex.message);
+  if (state.profile) {
+    const f = $("#checkoutForm");
+    f.customer_name.value = state.profile.full_name || "";
+    f.customer_phone.value = state.profile.phone || "";
   }
-});
 
-$("#markPaid").addEventListener("click", async () => {
-  if (state.currentOrderId) {
-    try { await updateOrderStatus(state.currentOrderId, "paid"); }
-    catch (ex) { console.error(ex); }
-  }
-  $("#doneOrderId").textContent = state.currentOrderId || "—";
-  showCheckoutStep("done");
-});
+  $("#checkoutModal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
 
-$("#payLater").addEventListener("click", () => {
-  $("#doneOrderId").textContent = state.currentOrderId || "—";
-  showCheckoutStep("done");
-});
+function closeCheckout() {
+  $("#checkoutModal").classList.add("hidden");
+  document.body.style.overflow = "";
+}
 
-$("#closeDone").addEventListener("click", finishOrder);
+function finishOrder() {
+  closeCheckout();
+  state.cart = [];
+  state.currentOrderId = null;
+  persistCart();
+  renderCart();
+}
 
 /* ============ TOAST ============ */
 let toastTimer;
@@ -296,7 +286,6 @@ function updateAuthUI() {
   $("#authProfile").classList.toggle("hidden", !logged);
   document.querySelectorAll(".auth-tab").forEach(t => t.classList.toggle("hidden", logged));
 
-  // Кнопка навбара
   const label = $("#authLabel");
   if (label) label.textContent = logged
     ? (state.profile?.full_name || "Кабинет")
@@ -414,35 +403,60 @@ $("#checkoutModal").addEventListener("click", e => { if (e.target === $("#checko
 $("#checkoutForm").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target;
+  const total = getCartTotal();
 
   const items = state.cart.map(i => {
     const p = state.products.find(x => x.id === i.id);
     return { id: p.id, name: p.name, price: p.price, quantity: i.quantity };
   });
-  const total = getCartTotal();
-  const notes = `Дарек: ${f.address.value.trim()}\n${f.note.value.trim()}`.trim();
 
+  const orderData = {
+    userId: state.user ? state.user.id : null,
+    customerName: f.customer_name.value.trim(),
+    customerPhone: f.customer_phone.value.trim(),
+    notes: `Дарек: ${f.address.value.trim()}\n${f.note.value.trim()}`.trim(),
+    items,
+    total
+  };
+
+  // Показываем QR сразу
+  $("#payAmount").textContent = money(total);
+  showCheckoutStep("pay");
+  $("#checkoutModal").scrollTop = 0;
+
+  // Сохраняем заказ в фоне
+  state.currentOrderId = null;
   try {
-    const order = await createOrder({
-      userId: state.user ? state.user.id : null,
-      customerName: f.customer_name.value.trim(),
-      customerPhone: f.customer_phone.value.trim(),
-      notes,
-      items, total
-    });
+    const order = await createOrder(orderData);
     state.currentOrderId = order.id;
-    $("#payAmount").textContent = money(total);
-    showCheckoutStep("pay");
+    console.log("[ELGE] Заказ сохранён:", order.id);
   } catch (ex) {
-    console.error(ex);
-    showToast("Ката: " + ex.message);
+    console.error("[ELGE] Ошибка сохранения заказа:", ex);
+    const localId = "LOCAL-" + Date.now();
+    state.currentOrderId = localId;
+    try {
+      const pending = JSON.parse(localStorage.getItem("elge_pending_orders") || "[]");
+      pending.push({ ...orderData, localId, createdAt: new Date().toISOString() });
+      localStorage.setItem("elge_pending_orders", JSON.stringify(pending));
+    } catch (_) {}
   }
 });
 
 $("#markPaid").addEventListener("click", async () => {
-  if (state.currentOrderId) {
-    try { await updateOrderStatus(state.currentOrderId, "paid"); }
-    catch (ex) { console.error(ex); }
+  const ref = ($("#paymentRef")?.value || "").trim();
+  if (state.currentOrderId && !String(state.currentOrderId).startsWith("LOCAL-")) {
+    try {
+      await updateOrderStatus(state.currentOrderId, "paid");
+    } catch (ex) {
+      console.error("[ELGE] Не удалось обновить статус:", ex);
+    }
+  }
+  if (ref) {
+    try {
+      const pending = JSON.parse(localStorage.getItem("elge_pending_orders") || "[]");
+      const idx = pending.findIndex(o => o.localId === state.currentOrderId);
+      if (idx >= 0) { pending[idx].paymentRef = ref; localStorage.setItem("elge_pending_orders", JSON.stringify(pending)); }
+    } catch (_) {}
   }
   $("#doneOrderId").textContent = state.currentOrderId || "—";
   showCheckoutStep("done");
