@@ -227,69 +227,36 @@ $("#checkoutModal").addEventListener("click", e => { if (e.target === $("#checko
 $("#checkoutForm").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target;
-  const total = getCartTotal();
 
-  // 1. Формируем позиции заказа
   const items = state.cart.map(i => {
     const p = state.products.find(x => x.id === i.id);
     return { id: p.id, name: p.name, price: p.price, quantity: i.quantity };
   });
+  const total = getCartTotal();
+  const notes = `Дарек: ${f.address.value.trim()}\n${f.note.value.trim()}`.trim();
 
-  // 2. Данные покупателя (сохраняем, чтобы использовать и после закрытия формы)
-  const orderData = {
-    userId: state.user ? state.user.id : null,
-    customerName: f.customer_name.value.trim(),
-    customerPhone: f.customer_phone.value.trim(),
-    notes: `Дарек: ${f.address.value.trim()}\n${f.note.value.trim()}`.trim(),
-    items,
-    total
-  };
-
-  // 3. Сразу переключаем на шаг QR — показываем сумму и код
-  $("#payAmount").textContent = money(total);
-  showCheckoutStep("pay");
-  $("#checkoutModal").scrollTop = 0;
-
-  // 4. Параллельно пробуем сохранить заказ в Supabase (не блокирует UI)
-  state.currentOrderId = null;
   try {
-    const order = await createOrder(orderData);
+    const order = await createOrder({
+      userId: state.user ? state.user.id : null,
+      customerName: f.customer_name.value.trim(),
+      customerPhone: f.customer_phone.value.trim(),
+      notes,
+      items, total
+    });
     state.currentOrderId = order.id;
-    console.log("[ELGE] Заказ сохранён в Supabase:", order.id);
+    $("#payAmount").textContent = money(total);
+    showCheckoutStep("pay");
   } catch (ex) {
-    // Не показываем ошибку пользователю — QR уже виден
-    console.error("[ELGE] Ошибка сохранения заказа в Supabase:", ex);
-    // Сохраняем локально, чтобы можно было передать данные админу
-    const localId = "LOCAL-" + Date.now();
-    state.currentOrderId = localId;
-    try {
-      const pending = JSON.parse(localStorage.getItem("elge_pending_orders") || "[]");
-      pending.push({ ...orderData, localId, createdAt: new Date().toISOString() });
-      localStorage.setItem("elge_pending_orders", JSON.stringify(pending));
-    } catch (_) {}
+    console.error(ex);
+    showToast("Ката: " + ex.message);
   }
 });
 
 $("#markPaid").addEventListener("click", async () => {
-  const ref = ($("#paymentRef")?.value || "").trim();
-  if (state.currentOrderId && !String(state.currentOrderId).startsWith("LOCAL-")) {
-    try {
-      await updateOrderStatus(state.currentOrderId, "paid");
-      console.log("[ELGE] Статус заказа обновлён на 'paid'");
-    } catch (ex) {
-      console.error("[ELGE] Не удалось обновить статус:", ex);
-    }
+  if (state.currentOrderId) {
+    try { await updateOrderStatus(state.currentOrderId, "paid"); }
+    catch (ex) { console.error(ex); }
   }
-
-  // Прикрепляем комментарий с кодом оплаты к локальному заказу
-  if (ref) {
-    try {
-      const pending = JSON.parse(localStorage.getItem("elge_pending_orders") || "[]");
-      const idx = pending.findIndex(o => o.localId === state.currentOrderId);
-      if (idx >= 0) { pending[idx].paymentRef = ref; localStorage.setItem("elge_pending_orders", JSON.stringify(pending)); }
-    } catch (_) {}
-  }
-
   $("#doneOrderId").textContent = state.currentOrderId || "—";
   showCheckoutStep("done");
 });
