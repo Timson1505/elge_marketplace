@@ -322,3 +322,20 @@ function resetForm() {
 }
 
 $("#logoutBtn").addEventListener("click", signOut);
+
+function resetForm() {
+  editingId = null;
+  $("#productForm").reset();
+  uploadedImages = [];
+  renderImagePreview();
+  if (uploadStatus) uploadStatus.textContent = "";
+  if (imagesUrlFallback) imagesUrlFallback.value = "";
+  $("#formTitle").textContent = "Жаңы товар кошуу";
+  $("#saveBtn").textContent = "Сактоо";
+  $("#cancelEdit").classList.add("hidden");
+  $("#formErr").textContent = "";
+} 
+
+uploadedImages = [...(p.images || [])];
+renderImagePreview();
+imagesUrlFallback.value = "";
