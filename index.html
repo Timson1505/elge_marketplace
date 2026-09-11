@@ -207,7 +207,7 @@
           <label>Аты-жөнү <input name="customer_name" type="text" required maxlength="80"></label>
           <label>Телефон <input name="customer_phone" type="tel" required maxlength="25" placeholder="+996 ___ ___ ___"></label>
           <label>Шаар / дарек <input name="address" type="text" required maxlength="160"></label>
-          <label>Эскертүү (милдеттүү эмес) <textarea name="note" rows="2" maxlength="300"></textarea></label>
+          <label>(милдеттүү эмес) <textarea name="note" rows="2" maxlength="300"></textarea></label>
 
           <div class="summary-row">
             <span>Жалпы сумма</span>
@@ -218,7 +218,6 @@
         </form>
       </section>
 
-      <!-- 2-кадам: QR -->
       <!-- 2-кадам: QR төлөм -->
 <section class="checkout-step hidden" id="checkoutStepPay">
   <span class="eyebrow">2 / 3 · Төлөм</span>
@@ -230,14 +229,13 @@
   </div>
 
   <div class="payment-box">
-    <img
-      src="payment-qr.jpeg"
-      alt="Төлөм үчүн QR код"
-      onerror="this.onerror=null;this.src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=ELGE-PAYMENT';"
-    >
-    <p>Телефонуңуздагы банк тиркемеси аркылуу QR кодду скандап, <strong>так сумманы</strong> төлөңүз.</p>
-    <p class="pay-phone">📞 +996 (990) 350 590</p>
-  </div>
+  <img id="qrImage"
+       src="payment-qr.jpeg"
+       alt="Төлөм үчүн QR код"
+       onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=ELGE-PAYMENT';">
+  <p>Телефонуңуздагы банк тиркемеси аркылуу QR кодду скандап, <strong>так сумманы</strong> төлөңүз.</p>
+  <p class="pay-phone">📞 +996 (990) 350 590</p>
+</div>
 
   <label class="ref-label">
     Төлөм коду / акыркы 4 сан (милдеттүү эмес)
