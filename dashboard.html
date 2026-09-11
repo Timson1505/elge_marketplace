@@ -42,6 +42,49 @@
   .tabs { display:flex; gap:8px; margin-bottom:18px; }
   .tab-btn { border:1px solid var(--line); background:#f7f9fa; padding:9px 16px; border-radius:12px; font-weight:800; cursor:pointer; }
   .tab-btn.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .image-upload { display:flex; flex-direction:column; gap:8px; }
+.upload-btn {
+  border: 2px dashed var(--line);
+  background: #f7f9fa;
+  border-radius: 12px;
+  padding: 14px 12px;
+  font-weight: 800;
+  color: var(--green-dark);
+  cursor: pointer;
+  transition: .2s;
+}
+.upload-btn:hover { border-color: var(--green); background: #eef9f5; }
+.upload-hint { font-size: 12px; color: var(--muted); margin: 0; }
+
+.image-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.image-preview .preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #f4f7f7;
+}
+.image-preview .preview-item img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.image-preview .preview-remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(0,0,0,.65);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  line-height: 1;
+}
 
   @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
 </style>
@@ -82,8 +125,14 @@
         <label>Эски баасы <input name="old_price" type="number" min="0"></label>
         <label>Категория <select name="category" id="catSelect" required></select></label>
         <label>Рейтинг <input name="rating" type="number" step="0.1" min="0" max="5" value="5"></label>
-        <label>Сүрөттөр (ар бири жаңы сапта, URL)
-          <textarea name="images" rows="3"></textarea>
+        <label>Сүрөттөр
+        <div class="image-upload">
+          <input type="file" id="imageFile" accept="image/*" multiple hidden>
+            <button type="button" class="upload-btn" id="pickImagesBtn">
+              📷 Файл тандоо (JPG, PNG, WebP)
+            </button>
+            <p class="upload-hint" id="uploadStatus"></p>
+        </div>
         </label>
         <label>Сүрөттөмө <textarea name="description" rows="3"></textarea></label>
 
