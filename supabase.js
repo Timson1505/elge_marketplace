@@ -33,10 +33,7 @@ async function getSession() {
 
 async function getProfile(userId) {
   const { data, error } = await sb
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+    .from("profiles").select("*").eq("id", userId).single();
   if (error) return null;
   return data;
 }
@@ -44,9 +41,7 @@ async function getProfile(userId) {
 /* ---------- DATA ---------- */
 async function fetchProducts() {
   const { data, error } = await sb
-    .from("products")
-    .select("*")
-    .eq("is_active", true)
+    .from("products").select("*").eq("is_active", true)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data;
@@ -61,28 +56,44 @@ async function fetchCategories() {
 
 async function fetchBanners() {
   const { data, error } = await sb
-    .from("banners").select("*")
-    .eq("is_active", true).order("sort_order");
+    .from("banners").select("*").eq("is_active", true).order("sort_order");
   if (error) throw error;
   return data;
 }
 
 /* ---------- ORDERS ---------- */
 async function createOrder({ userId, customerName, customerPhone, notes, items, total }) {
+  // 1. Вставляем сам заказ
   const { data: order, error } = await sb.from("orders").insert({
-    user_id: userId, customer_name: customerName,
-    customer_phone: customerPhone, notes, total
+    user_id: userId,
+    customer_name: customerName,
+    customer_phone: customerPhone,
+    notes,
+    total,
+    status: "new"
   }).select().single();
+
   if (error) throw error;
 
+  // 2. Вставляем позиции заказа
   const rows = items.map(it => ({
     order_id: order.id,
-    product_id: it.id,
+    product_id: Number(it.id),        // ← приводим к числу
     product_name: it.name,
-    price: it.price,
-    quantity: it.quantity
+    price: Number(it.price),
+    quantity: Number(it.quantity)
   }));
+
   const { error: e2 } = await sb.from("order_items").insert(rows);
   if (e2) throw e2;
+
   return order;
+}
+
+async function updateOrderStatus(orderId, status) {
+  const { error } = await sb
+    .from("orders")
+    .update({ status })
+    .eq("id", orderId);
+  if (error) throw error;
 }
