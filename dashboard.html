@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ELGE — Кабинет</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .dash-wrap { max-width: 1180px; margin: 32px auto; padding: 0 16px; }
+  .dash-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; gap:12px; flex-wrap:wrap; }
+  .dash-grid { display:grid; grid-template-columns: 360px 1fr; gap:22px; }
+  .dash-card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:20px; }
+  .dash-card h3 { margin:0 0 12px; }
+  .dash-card label { display:grid; gap:6px; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:10px; }
+  .dash-card input, .dash-card textarea, .dash-card select {
+    padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#f7f9fa;
+  }
+  .dash-list { display:grid; gap:12px; }
+  .dash-item { display:grid; grid-template-columns: 64px 1fr auto; gap:12px;
+               background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px; }
+  .dash-item img { width:64px; height:64px; object-fit:cover; border-radius:10px; }
+  .dash-item h4 { margin:0 0 4px; font-size:15px; }
+  .dash-item p  { margin:0; font-size:13px; color:var(--muted); }
+  .dash-actions { display:flex; flex-direction:column; gap:6px; }
+  .dash-actions button { border:0; border-radius:8px; padding:7px 10px; font-weight:800; cursor:pointer; }
+  .btn-del { background:#fde8e8; color:#a23d3d; }
+  .btn-edit { background:#eef9f5; color:var(--green-dark); }
+
+  .orders-list { display:grid; gap:12px; }
+  .order-card { border:1px solid var(--line); border-radius:14px; padding:14px; background:#fff; }
+  .order-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .order-status { font-size:12px; font-weight:800; padding:3px 9px; border-radius:99px; }
+  .status-new       { background:#e7f0ff; color:#1d4ed8; }
+  .status-confirmed { background:#fff3cd; color:#8a6300; }
+  .status-paid      { background:#e7f9ef; color:#046c47; }
+  .status-delivered { background:#d7f3d7; color:#1d6b1d; }
+  .status-cancelled { background:#fde8e8; color:#a23d3d; }
+  .order-card ul { margin:8px 0; padding-left:18px; font-size:14px; }
+  .order-card .order-total { font-weight:800; margin-top:6px; }
+  .order-card select { padding:7px 10px; border:1px solid var(--line); border-radius:8px; background:#f7f9fa; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:18px; }
+  .tab-btn { border:1px solid var(--line); background:#f7f9fa; padding:9px 16px; border-radius:12px; font-weight:800; cursor:pointer; }
+  .tab-btn.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+
+  @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="container nav-inner">
+    <a class="logo" href="index.html">EL<span class="logo1">GE</span></a>
+    <div></div>
+    <div style="display:flex; gap:14px; align-items:center">
+      <span id="whoami" style="color:#6d7885; font-size:14px"></span>
+      <a class="cart-button" href="index.html">← Башкы бет</a>
+      <button class="text-button" id="logoutBtn" type="button">Чыгуу</button>
+    </div>
+  </div>
+</header>
+
+<main class="dash-wrap">
+  <div class="dash-head">
+    <h1>Кабинет</h1>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="products" type="button">Товарлар</button>
+    <button class="tab-btn" data-tab="orders" type="button">Заказы</button>
+  </div>
+
+  <!-- =================== ТОВАРЫ =================== -->
+  <section id="tabProducts">
+    <div class="dash-grid">
+      <form class="dash-card" id="productForm">
+        <h3 id="formTitle">Жаңы товар кошуу</h3>
+        <input type="hidden" name="id">
+
+        <label>Аталышы <input name="name" required></label>
+        <label>Баасы (сом) <input name="price" type="number" min="0" required></label>
+        <label>Эски баасы <input name="old_price" type="number" min="0"></label>
+        <label>Категория <select name="category" id="catSelect" required></select></label>
+        <label>Рейтинг <input name="rating" type="number" step="0.1" min="0" max="5" value="5"></label>
+        <label>Сүрөттөр (ар бири жаңы сапта, URL)
+          <textarea name="images" rows="3"></textarea>
+        </label>
+        <label>Сүрөттөмө <textarea name="description" rows="3"></textarea></label>
+
+        <button class="primary-button wide" type="submit" id="saveBtn">Сактоо</button>
+        <button type="button" class="add-button hidden" id="cancelEdit" style="margin-top:8px">Жокко чыгаруу</button>
+        <p class="auth-error" id="formErr"></p>
+      </form>
+
+      <div class="dash-card">
+        <h3>Менин товарларым (<span id="count">0</span>)</h3>
+        <div class="dash-list" id="dashList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== ЗАКАЗЫ =================== -->
+  <section id="tabOrders" class="hidden">
+    <div class="dash-card">
+      <h3>Заказдар (<span id="ordersCount">0</span>)</h3>
+      <p style="color:#6d7885; font-size:13px; margin-top:0">
+        Админ бардык заказдарды көрөт. Сатуучу — өз товарлары камтылган заказдарды гана.
+      </p>
+      <div class="orders-list" id="ordersList"></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

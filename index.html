@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ELGE — керектүү товарлар бир жерде.">
+  <title>ELGE — керектүү товарлар</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header class="navbar">
+    <div class="container nav-inner">
+
+      <a class="logo" href="index.html" aria-label="ELGE башкы бет">
+        EL<span class="logo1" id="logo1">GE</span>
+      </a>
+
+      <div class="search-wrap">
+        <label class="sr-only" for="searchInput">Товар издөө</label>
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="searchInput" type="search" placeholder="Товар издеңиз..." autocomplete="off">
+      </div>
+
+      <div class="nav-actions">
+
+        <!-- ВАЖНО: id должен совпадать с script.js -->
+        <button class="auth-button" id="authButton" type="button">
+          <span aria-hidden="true">👤</span>
+          <span id="authLabel">Кирүү</span>
+        </button>
+
+        <button class="cart-button" id="openCart" type="button" aria-label="Себетти ачуу">
+          <span aria-hidden="true">🛒</span>
+          <span>Себет</span>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+
+      </div>
+
+    </div>
+  </header>
+
+
+  <main>
+
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-heading">
+          <div>
+            <span class="eyebrow">ELGE маркетплейси</span>
+            <h1>Элге керектүү товарлар — бир жерде</h1>
+            <p>Күнүмдүк керектөөгө ылайыктуу сапаттуу товарларды ыңгайлуу тандаңыз.</p>
+          </div>
+        </div>
+
+        <div class="hero-slider" id="heroSlider" aria-label="Актуалдуу сунуштар">
+          <div class="slides" id="slides"></div>
+          <button class="slider-arrow prev" id="prevSlide" type="button" aria-label="Мурунку баннер">‹</button>
+          <button class="slider-arrow next" id="nextSlide" type="button" aria-label="Кийинки баннер">›</button>
+          <div class="slider-dots" id="sliderDots" aria-label="Баннер тандоо"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="container categories-section">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Бөлүмдөр</span>
+          <h2>Категориялар</h2>
+        </div>
+        <button class="text-button" id="allCategories" type="button">Баарын көрүү</button>
+      </div>
+      <div class="category-list" id="categoryList"></div>
+    </section>
+
+
+    <section class="container products-section" id="productsSection">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Тандалган товарлар</span>
+          <h2 id="productsTitle">Жаңы товарлар</h2>
+        </div>
+        <span class="result-count" id="resultCount"></span>
+      </div>
+
+      <div class="products-grid" id="productsGrid"></div>
+
+      <div class="empty-state hidden" id="emptyState">
+        <div class="empty-icon">🔎</div>
+        <h3>Товар табылган жок</h3>
+        <p>Издөө сөзүн же категорияны өзгөртүп көрүңүз.</p>
+      </div>
+    </section>
+
+  </main>
+
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="footer-logo">ELGE</div>
+        <p>Элге керектүү товарларды бир жерден табууга жардам берген заманбап жергиликтүү маркетплейс.</p>
+      </div>
+      <div>
+        <h3>Байланыш</h3>
+        <p>Колдоо кызматы: <a href="mailto:timson1505@gmail.com">timson1505@gmail.com</a></p>
+        <p>Буюртмалар сайт аркылуу кабыл алынат.</p>
+      </div>
+      <div>
+        <h3>Төлөм</h3>
+        <p>Буюртманы ырастагандан кийин төлөм үчүн QR кодду колдонсоңуз болот.</p>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      © <span id="year"></span> ELGE. Бардык укуктар корголгон.
+    </div>
+  </footer>
+
+
+  <!-- ========== ТОВАР MODAL ========== -->
+  <div class="modal-backdrop hidden" id="productModal" role="presentation">
+    <div class="modal product-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="closeProductModal" type="button" aria-label="Жабуу">×</button>
+      <div class="modal-product-grid">
+        <div class="modal-gallery">
+          <div class="gallery-main">
+            <img id="modalMainImage" src="" alt="">
+            <button class="gallery-arrow gallery-prev" id="modalPrevImage" type="button" aria-label="Мурунку сүрөт">‹</button>
+            <button class="gallery-arrow gallery-next" id="modalNextImage" type="button" aria-label="Кийинки сүрөт">›</button>
+          </div>
+          <div class="thumbnails" id="modalThumbnails"></div>
+        </div>
+        <div class="modal-info">
+          <span class="category-badge" id="modalCategory"></span>
+          <h2 id="modalTitle"></h2>
+          <div class="modal-rating" id="modalRating"></div>
+          <div class="modal-price" id="modalPrice"></div>
+          <p id="modalDescription"></p>
+          <button class="primary-button wide" id="modalAddToCart" type="button">Себетке кошуу</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========== КОРЗИНА ========== -->
+  <div class="drawer-backdrop hidden" id="cartBackdrop"></div>
+
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Себет" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <span class="eyebrow">Буюртма</span>
+        <h2>Сиздин себетиңиз</h2>
+      </div>
+      <button class="modal-close" id="closeCart" type="button" aria-label="Жабуу">×</button>
+    </div>
+
+    <div class="cart-items" id="cartItems"></div>
+
+    <div class="cart-empty hidden" id="cartEmpty">
+      <div class="empty-icon">🛒</div>
+      <h3>Себет бош</h3>
+      <p>Керектүү товарларды себетке кошуңуз.</p>
+    </div>
+
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>Жалпы сумма</span>
+        <strong id="cartTotal">0 сом</strong>
+      </div>
+
+      <button class="primary-button wide" id="startCheckout" type="button">Буюртма берүү</button>
+
+      <p class="cart-note">Буюртманы тастыктагандан кийин QR код аркылуу төлөм жүргүзөсүз.</p>
+    </div>
+  </aside>
+
+
+  <!-- ========== CHECKOUT MODAL (QR) ========== -->
+  <div class="modal-backdrop hidden" id="checkoutModal" role="presentation">
+    <div class="modal checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+      <button class="modal-close" id="closeCheckout" type="button" aria-label="Жабуу">×</button>
+
+      <!-- 1-кадам -->
+      <section class="checkout-step" id="checkoutStepForm">
+        <span class="eyebrow">1 / 3 · Маалымат</span>
+        <h2 id="checkoutTitle">Байланыш маалыматтары</h2>
+
+        <form id="checkoutForm" class="checkout-form">
+          <label>Аты-жөнү <input name="customer_name" type="text" required maxlength="80"></label>
+          <label>Телефон <input name="customer_phone" type="tel" required maxlength="25" placeholder="+996 ___ ___ ___"></label>
+          <label>Шаар / дарек <input name="address" type="text" required maxlength="160"></label>
+          <label>Эскертүү (милдеттүү эмес) <textarea name="note" rows="2" maxlength="300"></textarea></label>
+
+          <div class="summary-row">
+            <span>Жалпы сумма</span>
+            <strong id="checkoutTotal">0 сом</strong>
+          </div>
+
+          <button class="primary-button wide" type="submit" id="placeOrderBtn">Буюртманы тастыктоо</button>
+        </form>
+      </section>
+
+      <!-- 2-кадам: QR -->
+      <section class="checkout-step hidden" id="checkoutStepPay">
+        <span class="eyebrow">2 / 3 · Төлөм</span>
+        <h2>QR аркылуу төлөм</h2>
+
+        <div class="payment-box">
+          <img src="payment-qr.jpeg" alt="Төлөм үчүн QR код">
+          <p class="payment-amount" id="payAmount">0 сом</p>
+          <p>Телефонуңуздагы банк тиркемеси аркылуу QR кодду скандап, <strong>так сумманы</strong> төлөңүз.</p>
+        </div>
+
+        <label class="ref-label">
+          Төлөм коду / акыркы 4 сан (милдеттүү эмес)
+          <input id="paymentRef" type="text" maxlength="40" placeholder="Мисалы: 4821">
+        </label>
+
+        <button class="primary-button wide" id="markPaid" type="button">Төлөдүм — ырастоого жөнөтүү</button>
+        <button class="text-button wide" id="payLater" type="button">Кийин төлөйм</button>
+      </section>
+
+      <!-- 3-кадам: done -->
+      <section class="checkout-step hidden" id="checkoutStepDone">
+        <span class="eyebrow">3 / 3 · Даяр</span>
+        <h2 id="doneTitle">Буюртма кабыл алынды 🎉</h2>
+        <p id="doneText">Буюртмаңыз кабыл алынды. Төлөмдү текшергенден кийин администратор сиз менен байланышат.</p>
+
+        <div class="order-number">Буюртма №<strong id="doneOrderId">—</strong></div>
+
+        <button class="primary-button wide" id="closeDone" type="button">Жабуу</button>
+      </section>
+    </div>
+  </div>
+
+
+  <!-- ========== AUTH MODAL (login / register / profile) ========== -->
+  <div class="modal-backdrop hidden" id="authModal" role="presentation">
+    <div class="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal-close" id="closeAuth" type="button" aria-label="Жабуу">×</button>
+
+      <h2 id="authTitle">Аккаунт</h2>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth-tab="login" type="button">Кирүү</button>
+        <button class="auth-tab" data-auth-tab="register" type="button">Каттоо</button>
+      </div>
+
+      <!-- LOGIN -->
+      <form class="auth-form" id="loginForm">
+        <label>Email <input type="email" name="email" required></label>
+        <label>Сырсөз <input type="password" name="password" required minlength="6"></label>
+        <p class="auth-error" data-error></p>
+        <button class="primary-button wide" type="submit">Кирүү</button>
+      </form>
+
+      <!-- REGISTER -->
+      <form class="auth-form hidden" id="registerForm">
+        <label>Аты-жөнү <input type="text" name="fullName" required maxlength="80"></label>
+        <label>Email <input type="email" name="email" required></label>
+        <label>Телефон <input type="tel" name="phone" required maxlength="25" placeholder="+996 ___ ___ ___"></label>
+        <label>Сырсөз <input type="password" name="password" required minlength="6"></label>
+        <label>Роль
+          <select name="role" required>
+            <option value="user">Кардар (user)</option>
+            <option value="seller">Сатуучу (seller)</option>
+            <option value="admin">Администратор (admin)</option>
+          </select>
+        </label>
+        <p class="auth-error" data-error></p>
+        <button class="primary-button wide" type="submit">Каттоо</button>
+      </form>
+
+      <!-- PROFILE -->
+      <div class="auth-profile hidden" id="authProfile">
+        <p id="authHello"></p>
+        <p id="authRole" class="muted"></p>
+        <a class="primary-button wide" id="dashLink" href="dashboard.html" style="display:none">Кабинетке өтүү</a>
+        <button class="text-button wide" id="logoutBtn" type="button">Чыгуу</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Подключение Supabase-клиента + твои скрипты -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
