@@ -130,6 +130,116 @@ document.addEventListener("change", async e => {
   }
 });
 
+/* ---------- IMAGE UPLOAD ---------- */
+// Массив уже загруженных URL (то, что пойдёт в product.images)
+let uploadedImages = [];
+
+const pickBtn = document.getElementById("pickImagesBtn");
+const fileInput = document.getElementById("imageFile");
+const uploadStatus = document.getElementById("uploadStatus");
+const imagePreview = document.getElementById("imagePreview");
+const imagesField = document.getElementById("imagesField");
+const imagesUrlFallback = document.getElementById("imagesUrlFallback");
+
+pickBtn?.addEventListener("click", () => fileInput.click());
+
+fileInput?.addEventListener("change", async e => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  uploadStatus.textContent = `Жүктөлүүдө: 0 / ${files.length}...`;
+  let done = 0;
+
+  for (const file of files) {
+    try {
+      const url = await uploadProductImage(file);
+      uploadedImages.push(url);
+      renderImagePreview();
+      done++;
+      uploadStatus.textContent = `Жүктөлдү: ${done} / ${files.length}`;
+    } catch (err) {
+      console.error(err);
+      uploadStatus.textContent = `Ката: ${err.message}`;
+    }
+  }
+
+  fileInput.value = ""; // сбрасываем input, чтобы можно было выбрать тот же файл снова
+  if (done === files.length) {
+    setTimeout(() => uploadStatus.textContent = "", 2500);
+  }
+});
+
+async function uploadProductImage(file) {
+  // 1. Проверка размера и типа
+  const MAX_MB = 5;
+  if (file.size > MAX_MB * 1024 * 1024) {
+    throw new Error(`${file.name} өтө чоң (макс ${MAX_MB}MB)`);
+  }
+  if (!file.type.startsWith("image/")) {
+    throw new Error(`${file.name} — сүрөт эмес`);
+  }
+
+  // 2. Формируем уникальное имя файла: sellerId/время-рандом.расширение
+  const ext = file.name.split(".").pop().toLowerCase();
+  const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const path = `${me.id}/${safeName}`;
+
+  // 3. Загружаем в bucket product-images
+  const { error: upErr } = await sb.storage
+    .from("product-images")
+    .upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type
+    });
+  if (upErr) throw upErr;
+
+  // 4. Получаем публичный URL
+  const { data: pub } = sb.storage
+    .from("product-images")
+    .getPublicUrl(path);
+  return pub.publicUrl;
+}
+
+function renderImagePreview() {
+  imagePreview.innerHTML = uploadedImages.map((url, i) => `
+    <div class="preview-item">
+      <img src="${url}" alt="">
+      <button type="button" class="preview-remove" data-remove-img="${i}" title="Өчүрүү">×</button>
+    </div>
+  `).join("");
+  imagesField.value = uploadedImages.join("\n");
+}
+
+imagePreview?.addEventListener("click", async e => {
+  const btn = e.target.closest("[data-remove-img]");
+  if (!btn) return;
+  const idx = Number(btn.dataset.removeImg);
+  const url = uploadedImages[idx];
+  uploadedImages.splice(idx, 1);
+  renderImagePreview();
+  // Пытаемся удалить файл из Storage (не критично, если не получится)
+  try {
+    const path = url.split("/product-images/")[1];
+    if (path) await sb.storage.from("product-images").remove([path]);
+  } catch (_) {}
+});
+
+// Резервный ввод URL — синхронизируем с uploadedImages
+imagesUrlFallback?.addEventListener("input", () => {
+  const urls = imagesUrlFallback.value.split("\n").map(x => x.trim()).filter(Boolean);
+  // Объединяем загруженные + вручную добавленные (без дублей)
+  const combined = [...new Set([...uploadedImages, ...urls])];
+  // Показываем только уникальные
+  imagePreview.innerHTML = combined.map((url, i) => `
+    <div class="preview-item">
+      <img src="${url}" alt="">
+      <button type="button" class="preview-remove" data-remove-img="${i}">×</button>
+    </div>
+  `).join("");
+  imagesField.value = combined.join("\n");
+});
+
 /* ---------- SAVE PRODUCT ---------- */
 $("#productForm").addEventListener("submit", async e => {
   e.preventDefault();
@@ -137,7 +247,10 @@ $("#productForm").addEventListener("submit", async e => {
   const err = $("#formErr");
   err.textContent = "";
 
-  const imagesRaw = f.images.value.split("\n").map(x => x.trim()).filter(Boolean);
+  // Собираем изображения из загруженных + ручного поля
+const fromField = (imagesField?.value || "").split("\n").map(x => x.trim()).filter(Boolean);
+const fromFallback = (imagesUrlFallback?.value || "").split("\n").map(x => x.trim()).filter(Boolean);
+const imagesRaw = [...new Set([...fromField, ...fromFallback])];
 
   const payload = {
     name: f.name.value.trim(),
