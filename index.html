@@ -219,24 +219,39 @@
       </section>
 
       <!-- 2-кадам: QR -->
-      <section class="checkout-step hidden" id="checkoutStepPay">
-        <span class="eyebrow">2 / 3 · Төлөм</span>
-        <h2>QR аркылуу төлөм</h2>
+      <!-- 2-кадам: QR төлөм -->
+<section class="checkout-step hidden" id="checkoutStepPay">
+  <span class="eyebrow">2 / 3 · Төлөм</span>
+  <h2>QR аркылуу төлөм</h2>
 
-        <div class="payment-box">
-          <img src="payment-qr.jpeg" alt="Төлөм үчүн QR код">
-          <p class="payment-amount" id="payAmount">0 сом</p>
-          <p>Телефонуңуздагы банк тиркемеси аркылуу QR кодду скандап, <strong>так сумманы</strong> төлөңүз.</p>
-        </div>
+  <div class="pay-total">
+    <span>Төлөнүүчү сумма</span>
+    <strong id="payAmount">0 сом</strong>
+  </div>
 
-        <label class="ref-label">
-          Төлөм коду / акыркы 4 сан (милдеттүү эмес)
-          <input id="paymentRef" type="text" maxlength="40" placeholder="Мисалы: 4821">
-        </label>
+  <div class="payment-box">
+    <img
+      src="payment-qr.jpeg"
+      alt="Төлөм үчүн QR код"
+      onerror="this.onerror=null;this.src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=ELGE-PAYMENT';"
+    >
+    <p>Телефонуңуздагы банк тиркемеси аркылуу QR кодду скандап, <strong>так сумманы</strong> төлөңүз.</p>
+    <p class="pay-phone">📞 +996 (990) 350 590</p>
+  </div>
 
-        <button class="primary-button wide" id="markPaid" type="button">Төлөдүм — ырастоого жөнөтүү</button>
-        <button class="text-button wide" id="payLater" type="button">Кийин төлөйм</button>
-      </section>
+  <label class="ref-label">
+    Төлөм коду / акыркы 4 сан (милдеттүү эмес)
+    <input id="paymentRef" type="text" maxlength="40" placeholder="Мисалы: 4821">
+  </label>
+
+  <button class="primary-button wide" id="markPaid" type="button">
+    Төлөдүм — ырастоого жөнөтүү
+  </button>
+
+  <button class="text-button wide" id="payLater" type="button">
+    Кийин төлөйм
+  </button>
+</section>
 
       <!-- 3-кадам: done -->
       <section class="checkout-step hidden" id="checkoutStepDone">
