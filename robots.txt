@@ -1,0 +1,29 @@
+# ================================
+# ELGE — маркетплейс
+# https://timson1505.github.io/elge2v/
+# ================================
+
+# Все поисковые роботы
+User-agent: *
+Allow: /
+
+# Закрываем от индексации служебные и личные страницы
+Disallow: /dashboard.html
+Disallow: /auth.html
+Disallow: /*?*token=
+Disallow: /*?*code=
+Disallow: /*?*error=
+
+# Служебные пути Supabase, если появятся
+Disallow: /rest/
+Disallow: /auth/
+
+# Разрешаем обходить изображения товаров
+Allow: /images/
+Allow: /*.jpeg$
+Allow: /*.jpg$
+Allow: /*.png$
+Allow: /*.webp$
+
+# Карта сайта
+Sitemap: https://timson1505.github.io/elge_marketplace/sitemap.xml
