@@ -63,17 +63,17 @@ async function fetchBanners() {
 
 /* ---------- ORDERS ---------- */
 async function createOrder({ userId, customerName, customerPhone, notes, items, total }) {
-  // 1. Вставляем сам заказ
-  const { data: order, error } = await sb.from("orders").insert({
-    user_id: userId,
-    customer_name: customerName,
-    customer_phone: customerPhone,
-    notes,
-    total,
-    status: "new"
-  }).select().single();
-
+  const { data, error } = await sb.rpc("create_order", {
+    p_user_id: userId,
+    p_customer_name: customerName,
+    p_customer_phone: customerPhone,
+    p_notes: notes,
+    p_total: total,
+    p_items: items
+  });
   if (error) throw error;
+  return { id: data };
+}
 
   // 2. Вставляем позиции заказа
   const rows = items.map(it => ({
