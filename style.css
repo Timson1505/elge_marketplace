@@ -1599,6 +1599,26 @@ img {
   border-radius: 14px;
 }
 
+/* Плавное появление модала */
+.checkout-modal {
+  animation: modalIn .25s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(14px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Индикатор прогресса шагов (полоска под шапкой) */
+.checkout-step .step-head::after {
+  content: "";
+  display: block;
+  height: 3px;
+  margin-top: 16px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--green) 0%, var(--yellow) 100%);
+  opacity: .18;
+}
+
 /* =========================================================
    МОБИЛЬНАЯ ВЕРСИЯ
 ========================================================= */
