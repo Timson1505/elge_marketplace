@@ -1306,6 +1306,323 @@ img {
   font-size: 20px;
 }
 
+/* ====== CHECKOUT MODAL — редизайн ====== */
+/* =========================================================
+   CHECKOUT MODAL — редизайн
+========================================================= */
+
+.checkout-modal {
+  width: min(520px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  padding: 0;
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .28);
+}
+
+/* Крестик — в правом верхнем углу */
+.checkout-modal > .modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f2f5f6;
+  color: var(--ink);
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+  transition: .18s;
+}
+.checkout-modal > .modal-close:hover {
+  background: #e6ebee;
+  transform: rotate(90deg);
+}
+
+/* ---------- Шаг ---------- */
+.checkout-step {
+  padding: 30px 30px 28px;
+}
+
+.step-head {
+  margin-bottom: 22px;
+}
+.step-head .eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.step-head h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+}
+.step-sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* ---------- Форма ---------- */
+.checkout-form {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-2);
+  letter-spacing: -.01em;
+}
+.field-label em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f7f9fa;
+  color: var(--ink);
+  font-size: 15px;
+  outline: 0;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.field textarea {
+  resize: vertical;
+  min-height: 70px;
+  font-family: inherit;
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #aab4bd;
+}
+.field input:focus,
+.field textarea:focus {
+  border-color: rgba(8, 127, 91, .55);
+  box-shadow: 0 0 0 4px rgba(8, 127, 91, .10);
+  background: #fff;
+}
+
+/* ---------- Итоговая сумма ---------- */
+.checkout-form .summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  margin-top: 4px;
+  background: linear-gradient(135deg, #eef9f5, #f3fbf7);
+  border: 1px solid rgba(8, 127, 91, .18);
+  border-radius: 14px;
+}
+.checkout-form .summary-row span {
+  font-size: 14px;
+  color: var(--green-dark);
+  font-weight: 700;
+}
+.checkout-form .summary-row strong {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -.02em;
+}
+
+/* ---------- Кнопка submit ---------- */
+.checkout-form .primary-button.wide {
+  padding: 15px 18px;
+  font-size: 16px;
+  border-radius: 14px;
+  margin-top: 4px;
+  background: var(--yellow);
+  color: var(--ink);
+}
+.checkout-form .primary-button.wide:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(245, 185, 66, .35);
+}
+
+/* =========================================================
+   2-КАДАМ: QR-төлөм
+========================================================= */
+.pay-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  margin: 0 0 18px;
+  background: linear-gradient(135deg, #eef9f5, #f3fbf7);
+  border: 1px solid rgba(8, 127, 91, .18);
+  border-radius: 16px;
+}
+.pay-total span {
+  color: var(--green-dark);
+  font-weight: 700;
+  font-size: 14px;
+}
+.pay-total strong {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -.02em;
+}
+
+.checkout-modal .payment-box {
+  padding: 22px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fbfcfc;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.checkout-modal .payment-box img {
+  width: 210px;
+  height: 210px;
+  object-fit: contain;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  background: #fff;
+  padding: 8px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 20px rgba(16, 36, 62, .06);
+}
+.checkout-modal .payment-box p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.checkout-modal .payment-box .pay-phone {
+  font-weight: 800;
+  color: var(--ink);
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.checkout-modal .ref-label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-2);
+  margin: 14px 0 18px;
+}
+.checkout-modal .ref-label input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f7f9fa;
+  font-size: 15px;
+  outline: 0;
+  transition: .18s;
+}
+.checkout-modal .ref-label input:focus {
+  border-color: rgba(8, 127, 91, .55);
+  box-shadow: 0 0 0 4px rgba(8, 127, 91, .10);
+  background: #fff;
+}
+
+.checkout-modal #markPaid {
+  padding: 15px 18px;
+  font-size: 16px;
+  border-radius: 14px;
+}
+.checkout-modal #payLater {
+  margin-top: 10px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px;
+}
+.checkout-modal #payLater:hover {
+  color: var(--ink);
+}
+
+/* =========================================================
+   3-КАДАМ: Готово
+========================================================= */
+#checkoutStepDone {
+  text-align: center;
+  padding: 40px 30px 32px;
+}
+#checkoutStepDone .step-head {
+  margin-bottom: 18px;
+}
+#checkoutStepDone h2 {
+  font-size: 26px;
+}
+#checkoutStepDone > p {
+  color: var(--muted);
+  margin: 0 auto 22px;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+.order-number {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  margin-bottom: 24px;
+  background: #eef9f5;
+  border: 1px dashed rgba(8, 127, 91, .35);
+  border-radius: 14px;
+  color: var(--green-dark);
+  font-size: 15px;
+  font-weight: 700;
+}
+.order-number strong {
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+#checkoutStepDone .primary-button.wide {
+  padding: 15px 18px;
+  font-size: 16px;
+  border-radius: 14px;
+}
+
+/* =========================================================
+   МОБИЛЬНАЯ ВЕРСИЯ
+========================================================= */
+@media (max-width: 560px) {
+  .checkout-modal {
+    border-radius: 20px;
+    max-height: 94vh;
+  }
+  .checkout-step {
+    padding: 26px 20px 22px;
+  }
+  .step-head h2 {
+    font-size: 21px;
+  }
+  .checkout-modal .payment-box img {
+    width: 180px;
+    height: 180px;
+  }
+  .pay-total strong,
+  .checkout-form .summary-row strong {
+    font-size: 20px;
+  }
+}
+
 
 /* QR */
 .payment-box {
