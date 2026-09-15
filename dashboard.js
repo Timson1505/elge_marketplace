@@ -259,7 +259,7 @@ async function loadOrders() {
     if (error) {
       console.error("[ELGE dashboard] fetchOrders error:", error);
       listEl.innerHTML = `<p style="color:#a23d3d">
-        Заказдарды жүктөө катасы: ${error.message}
+        Буюртманы жүктөө катасы: ${error.message}
         ${error.hint ? `<br><small>${error.hint}</small>` : ""}
       </p>`;
       return;
@@ -291,7 +291,7 @@ function renderOrders() {
   $("#ordersCount").textContent = state.orders.length;
 
   if (!state.orders.length) {
-    $("#ordersList").innerHTML = `<p style="color:#6d7885">Заказдар жок.</p>`;
+    $("#ordersList").innerHTML = `<p style="color:#6d7885">Буюртма жок.</p>`;
     return;
   }
 
