@@ -424,14 +424,18 @@ $("#checkoutForm").addEventListener("submit", async e => {
   showCheckoutStep("pay");
   $("#checkoutModal").scrollTop = 0;
 
-  // Сохраняем заказ в фоне
+  // Сохраняем заказ
   state.currentOrderId = null;
   try {
     const order = await createOrder(orderData);
     state.currentOrderId = order.id;
     console.log("[ELGE] Заказ сохранён:", order.id);
+    showToast("Буюртма кабыл алынды ✅");
   } catch (ex) {
     console.error("[ELGE] Ошибка сохранения заказа:", ex);
+    showToast("⚠️ Буюртма серверге сакталбады. Байланышыңызды текшериңиз.");
+
+    // Локальный fallback — чтобы не потерять заказ
     const localId = "LOCAL-" + Date.now();
     state.currentOrderId = localId;
     try {
