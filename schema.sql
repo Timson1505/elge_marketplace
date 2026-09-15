@@ -31,6 +31,9 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
 
+create policy "profiles insert own" on public.profiles
+for insert with check (auth.uid() = id);
+
 -- Хелпер: админ?
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public as $$
