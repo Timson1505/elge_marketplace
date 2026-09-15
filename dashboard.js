@@ -1,5 +1,11 @@
+/* =========================================================
+   ELGE — dashboard.js (fixed)
+========================================================= */
 let me = null, myProfile = null;
 let editingId = null;
+
+// Локальный список URL-ов загруженных/существующих фото
+let currentImages = [];
 
 const $ = s => document.querySelector(s);
 
@@ -64,6 +70,87 @@ async function loadMyProducts() {
     </div>
   `).join("");
 }
+
+/* =========================================================
+   IMAGE UPLOAD
+========================================================= */
+const imageFile    = $("#imageFile");
+const pickImagesBtn= $("#pickImagesBtn");
+const imagePreview = $("#imagePreview");
+const imagesField  = $("#imagesField");
+const uploadStatus = $("#uploadStatus");
+
+pickImagesBtn?.addEventListener("click", () => imageFile.click());
+
+imageFile?.addEventListener("change", async e => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+
+  uploadStatus.textContent = `Жүктөлүүдө (0/${files.length})...`;
+  let done = 0;
+
+  for (const file of files) {
+    try {
+      const cleanName = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${me.id}/${Date.now()}-${cleanName}`;
+
+      const { error: upErr } = await sb.storage
+        .from("products")
+        .upload(path, file, { cacheControl: "3600", upsert: false });
+
+      if (upErr) throw upErr;
+
+      const { data: pub } = sb.storage.from("products").getPublicUrl(path);
+      currentImages.push(pub.publicUrl);
+
+      done++;
+      uploadStatus.textContent = `Жүктөлүүдө (${done}/${files.length})...`;
+    } catch (ex) {
+      console.error("Upload error:", ex);
+      alert(`Файл жүктөлбөдү: ${file.name}\n${ex.message}`);
+    }
+  }
+
+  uploadStatus.textContent = `Даяр ✅ (${done} сүрөт)`;
+  imageFile.value = "";
+  syncImages();
+});
+
+/* Ручной ввод URL — сливаем в currentImages */
+$("#imagesUrlFallback")?.addEventListener("input", e => {
+  const urls = e.target.value.split(/\s+/).map(s => s.trim()).filter(Boolean);
+  // Убираем ранее добавленные из fallback и добавляем новые
+  // (те, что загружены через input file — уже в currentImages, их не трогаем)
+  const uploadedCount = currentImages.length;
+  // Простое решение: считаем, что fallback всегда добавляется ПОСЛЕ файлов
+  // Обрезаем currentImages до uploadedCount и добавляем urls
+  currentImages = currentImages.slice(0, uploadedCount).concat(urls);
+  syncImages();
+});
+
+/* Отрисовка превью + запись в hidden input */
+function syncImages() {
+  if (imagesField) imagesField.value = currentImages.join("\n");
+  renderImagePreview();
+}
+
+function renderImagePreview() {
+  if (!imagePreview) return;
+  imagePreview.innerHTML = currentImages.map((url, i) => `
+    <div class="preview-item">
+      <img src="${url}" alt="">
+      <button type="button" class="preview-remove" data-remove-img="${i}" aria-label="Өчүрүү">×</button>
+    </div>
+  `).join("");
+}
+
+document.addEventListener("click", e => {
+  const rm = e.target.closest("[data-remove-img]");
+  if (rm) {
+    currentImages.splice(Number(rm.dataset.removeImg), 1);
+    syncImages();
+  }
+});
 
 /* ---------- ORDERS ---------- */
 function statusLabel(s) {
@@ -137,7 +224,8 @@ $("#productForm").addEventListener("submit", async e => {
   const err = $("#formErr");
   err.textContent = "";
 
-  const imagesRaw = f.images.value.split("\n").map(x => x.trim()).filter(Boolean);
+  // Берём актуальный список из currentImages
+  const imagesRaw = currentImages.slice();
 
   const payload = {
     name: f.name.value.trim(),
@@ -172,6 +260,7 @@ document.addEventListener("click", async e => {
     const id = Number(ed.dataset.edit);
     const { data: p } = await sb.from("products").select("*").eq("id", id).single();
     if (!p) return;
+
     editingId = id;
     const f = $("#productForm");
     f.id.value = p.id;
@@ -180,8 +269,15 @@ document.addEventListener("click", async e => {
     f.old_price.value = p.old_price || "";
     f.category.value = p.category;
     f.rating.value = p.rating;
-    f.images.value = (p.images || []).join("\n");
     f.description.value = p.description || "";
+
+    // Загружаем картинки в currentImages
+    currentImages = Array.isArray(p.images) ? p.images.slice() : [];
+    // Резервное поле URL — тоже заполним
+    const fallback = $("#imagesUrlFallback");
+    if (fallback) fallback.value = "";
+    syncImages();
+
     $("#formTitle").textContent = "Товарды оңдоо";
     $("#saveBtn").textContent = "Жаңыртуу";
     $("#cancelEdit").classList.remove("hidden");
@@ -202,6 +298,12 @@ $("#cancelEdit").addEventListener("click", resetForm);
 function resetForm() {
   editingId = null;
   $("#productForm").reset();
+  currentImages = [];
+  const fallback = $("#imagesUrlFallback");
+  if (fallback) fallback.value = "";
+  if (uploadStatus) uploadStatus.textContent = "";
+  syncImages();
+
   $("#formTitle").textContent = "Жаңы товар кошуу";
   $("#saveBtn").textContent = "Сактоо";
   $("#cancelEdit").classList.add("hidden");
