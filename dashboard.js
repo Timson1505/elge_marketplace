@@ -322,6 +322,11 @@ function renderOrders() {
   `).join("");
 }
 
+/* ====== Обновление каждые 20 сек ====== */
+ setInterval(() => {
+    if (!$("#tabOrders").classList.contains("hidden")) loadOrders();
+  }, 20000);
+
 document.addEventListener("change", async e => {
   const sel = e.target.closest("[data-status-order]");
   if (!sel) return;
