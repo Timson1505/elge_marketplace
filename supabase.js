@@ -66,16 +66,39 @@ async function getSession() {
 
 
 async function getProfile(userId) {
-  const { data, error } =
-    await sb
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+  const { data, error } = await sb
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
 
   if (error) {
     console.error("Ошибка получения профиля:", error);
     return null;
+  }
+
+  if (!data) {
+    // Профиль отсутствует — попробуем создать из метаданных пользователя
+    const { data: u } = await sb.auth.getUser();
+    const meta = u?.user?.user_metadata || {};
+    const role = ["user","seller","admin"].includes(meta.role) ? meta.role : "user";
+
+    const { data: inserted, error: insErr } = await sb
+      .from("profiles")
+      .insert({
+        id: userId,
+        full_name: meta.full_name || "",
+        phone: meta.phone || "",
+        role
+      })
+      .select()
+      .maybeSingle();
+
+    if (insErr) {
+      console.error("Не удалось создать профиль:", insErr);
+      return null;
+    }
+    return inserted;
   }
 
   return data;
