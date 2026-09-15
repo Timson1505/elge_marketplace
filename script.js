@@ -7,6 +7,12 @@ function renderBanners() {
   }
 }
 
+await sb.storage.from("banners").upload(path, file, {
+  cacheControl: "3600",
+  contentType: file.type,  // ← добавьте эту строку
+  upsert: false
+});
+
 const state = {
   user: null,
   profile: null,
