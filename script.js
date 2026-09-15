@@ -1,18 +1,5 @@
 /* ============ STATE ============ */
 
-function renderBanners() {
-  if (!state.banners.length) {
-    $("#slides").innerHTML = "<div class='slide'><h2>Баннерлер жүктөлбөдү</h2></div>";
-    return;
-  }
-}
-
-await sb.storage.from("banners").upload(path, file, {
-  cacheControl: "3600",
-  contentType: file.type,  // ← добавьте эту строку
-  upsert: false
-});
-
 const state = {
   user: null,
   profile: null,
