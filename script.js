@@ -1,4 +1,12 @@
 /* ============ STATE ============ */
+
+function renderBanners() {
+  if (!state.banners.length) {
+    $("#slides").innerHTML = "<div class='slide'><h2>Баннерлер жүктөлбөдү</h2></div>";
+    return;
+  }
+}
+
 const state = {
   user: null,
   profile: null,
