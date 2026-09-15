@@ -352,3 +352,130 @@ function showToast(msg) {
 }
 
 $("#logoutBtn").addEventListener("click", signOut);
+
+
+/* ================= ВКЛАДКА «КЕЛИШИМ САЯСАТЫ» ================= */
+const AGREEMENT_VERSION = "v1.0";
+
+function initAgreementTab() {
+  // Кнопка вкладки видна только продавцу
+  const btn = $("#tabAgreementBtn");
+  if (state.profile?.role === "seller") {
+    btn.classList.remove("hidden");
+  } else {
+    btn.classList.add("hidden");
+  }
+
+  // Навешиваем обработчики
+  $("#agreeCheckbox").addEventListener("change", e => {
+    $("#acceptAgreementBtn").disabled = !e.target.checked;
+  });
+
+  $("#acceptAgreementBtn").addEventListener("click", acceptAgreement);
+
+  // Переход на вкладку «Келишим саясаты» из баннера
+  document.addEventListener("click", e => {
+    const link = e.target.closest("[data-goto-tab]");
+    if (link) {
+      const target = link.dataset.gotoTab;
+      const tabBtn = document.querySelector(`.tab-btn[data-tab="${target}"]`);
+      if (tabBtn) tabBtn.click();
+    }
+  });
+
+  // Обновляем UI (принято или нет)
+  renderAgreementState();
+}
+
+function renderAgreementState() {
+  const accepted = !!state.profile?.seller_agreement_accepted_at;
+
+  $("#agreementBox").classList.toggle("hidden", accepted);
+  $("#agreementDone").classList.toggle("hidden", !accepted);
+
+  // Баннер над товарами
+  const alertEl = $("#agreementAlert");
+  if (alertEl) {
+    alertEl.classList.toggle(
+      "hidden",
+      state.profile?.role !== "seller" || accepted
+    );
+  }
+
+  if (accepted) {
+    const d = new Date(state.profile.seller_agreement_accepted_at);
+    $("#agreementDate").textContent = d.toLocaleString("ky-KG", {
+      day: "2-digit", month: "long", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    });
+    $("#agreementVer").textContent =
+      state.profile.seller_agreement_version || AGREEMENT_VERSION;
+  }
+}
+
+async function acceptAgreement() {
+  const btn = $("#acceptAgreementBtn");
+  btn.disabled = true;
+  btn.textContent = "Сакталууда...";
+
+  try {
+    const now = new Date().toISOString();
+    const { error } = await sb
+      .from("profiles")
+      .update({
+        seller_agreement_accepted_at: now,
+        seller_agreement_version: AGREEMENT_VERSION
+      })
+      .eq("id", state.user.id);
+
+    if (error) throw error;
+
+    // Обновляем локальный профиль, чтобы UI сразу отреагировал
+    state.profile.seller_agreement_accepted_at = now;
+    state.profile.seller_agreement_version = AGREEMENT_VERSION;
+
+    renderAgreementState();
+    showToast("Келишим кабыл алынды ✅");
+  } catch (ex) {
+    console.error("[ELGE] acceptAgreement:", ex);
+    alert("Ката: " + (ex.message || ex));
+    btn.disabled = false;
+    btn.textContent = "Келишимди кабыл алам";
+  }
+}
+
+/* ================= БЛОКИРОВКА ФОРМЫ ТОВАРА ДО ПРИНЯТИЯ ================= */
+function guardProductForm() {
+  // Только для продавцов, ещё не принявших условия
+  if (state.profile?.role !== "seller") return;
+  if (state.profile?.seller_agreement_accepted_at) return;
+
+  // Отключаем форму
+  const form = $("#productForm");
+  if (!form) return;
+  form.querySelectorAll("input, textarea, select, button").forEach(el => {
+    // Оставляем «Отмена» и поле id скрытым
+    if (el.id === "cancelEdit") return;
+    el.disabled = true;
+  });
+
+  // Меняем текст кнопки
+  const saveBtn = $("#saveBtn");
+  if (saveBtn) {
+    saveBtn.textContent = "🔒 Келишим кабыл алынбаган";
+    saveBtn.style.opacity = ".55";
+    saveBtn.style.cursor = "not-allowed";
+  }
+}
+
+/* ====== Вызовы функции "Келишим Саясаты" ====== */
+  // ... существующий код init() ...
+  state.categories = await fetchCategories();
+  renderCategorySelect();
+
+  await loadMyProducts();
+  await loadOrders();
+
+  // ✳ НОВОЕ:
+  initAgreementTab();
+  guardProductForm();
