@@ -534,7 +534,7 @@ function renderSellers() {
             <strong>${s.products_count ?? 0}</strong>
           </div>
           <div class="seller-stat">
-            <span>Заказдар</span>
+            <span>Буюртмалар</span>
             <strong>${s.orders_count ?? 0}</strong>
           </div>
           <div class="seller-stat">
