@@ -380,3 +380,104 @@ function showToast(msg) {
 }
 
 $("#logoutBtn").addEventListener("click", signOut);
+
+/* ================= ВКЛАДКА «САТУУЧУЛАР» (только admin) ================= */
+const sellersState = {
+  list: [],
+  query: "",
+  role: "all"
+};
+
+function initSellersTab() {
+  const btn = $("#tabSellersBtn");
+  if (state.profile?.role === "admin") btn.classList.remove("hidden");
+  else btn.classList.add("hidden");
+
+  $("#refreshSellers").addEventListener("click", loadSellers);
+
+  $("#sellersSearch").addEventListener("input", e => {
+    sellersState.query = e.target.value.toLowerCase().trim();
+    renderSellers();
+  });
+
+  $("#sellersRoleFilter").addEventListener("change", e => {
+    sellersState.role = e.target.value;
+    renderSellers();
+  });
+}
+
+async function loadSellers() {
+  const listEl = $("#sellersList");
+  listEl.innerHTML = `<p style="color:#6d7885">Жүктөлүүдө...</p>`;
+
+  try {
+    const { data, error } = await sb.rpc("admin_get_sellers");
+    if (error) throw error;
+
+    sellersState.list = data || [];
+    renderSellers();
+  } catch (ex) {
+    console.error("[ELGE] loadSellers:", ex);
+    listEl.innerHTML = `<p style="color:#a23d3d">Ката: ${ex.message || ex}</p>`;
+  }
+}
+
+function renderSellers() {
+  const q = sellersState.query;
+  const roleFilter = sellersState.role;
+
+  const filtered = sellersState.list.filter(s => {
+    if (roleFilter !== "all" && s.role !== roleFilter) return false;
+    if (!q) return true;
+    const text = `${s.full_name || ""} ${s.email || ""} ${s.phone || ""}`.toLowerCase();
+    return text.includes(q);
+  });
+
+  $("#sellersCount").textContent = `(${filtered.length})`;
+  $("#sellersEmpty").classList.toggle("hidden", filtered.length !== 0);
+
+  $("#sellersList").innerHTML = filtered.map(s => {
+    const initials = (s.full_name || s.email || "?")
+      .split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+    const isAdmin = s.role === "admin";
+    const agreed = !!s.agreement_at;
+    const agreeLabel = isAdmin
+      ? ""
+      : `<span class="agree-badge ${agreed ? "ok" : "no"}">
+           ${agreed ? "✓ Келишим кабыл алынган" : "⚠ Келишим кабыл алынбаган"}
+         </span>`;
+
+    return `
+      <div class="seller-card ${isAdmin ? "role-admin" : ""}">
+        <div class="seller-avatar">${initials}</div>
+        <div class="seller-main">
+          <h4>
+            ${s.full_name || "—"}
+            <span class="role-badge role-${s.role}">${s.role}</span>
+            ${agreeLabel}
+          </h4>
+          <p class="seller-email">✉️ ${s.email || "—"}</p>
+          <div class="seller-meta">
+            <span>📞 ${s.phone || "—"}</span>
+            <span>📅 ${new Date(s.created_at).toLocaleDateString("ky-KG")}</span>
+            ${agreed ? `<span>📜 ${new Date(s.agreement_at).toLocaleDateString("ky-KG")}</span>` : ""}
+          </div>
+        </div>
+        <div class="seller-stats">
+          <div class="seller-stat">
+            <span>Товарлар</span>
+            <strong>${s.products_count}</strong>
+          </div>
+          <div class="seller-stat">
+            <span>Заказдар</span>
+            <strong>${s.orders_count}</strong>
+          </div>
+          <div class="seller-stat">
+            <span>Сатуу</span>
+            <strong>${money(s.total_sales)}</strong>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
