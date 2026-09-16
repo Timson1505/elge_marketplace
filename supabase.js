@@ -121,3 +121,27 @@ async function uploadProductImage(file) {
   const { data } = sb.storage.from("products").getPublicUrl(path);
   return data.publicUrl;
 }
+
+
+async function fetchOrders() {
+  const { data, error } = await sb
+    .from("orders")
+    .select(`
+      *,
+      order_items (
+        *,
+        product:product_id ( id, name, seller:seller_id ( full_name ) )
+      )
+    `)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  // Разворачиваем seller в плоское поле для удобства рендера
+  return (data || []).map(o => ({
+    ...o,
+    order_items: (o.order_items || []).map(i => ({
+      ...i,
+      product_seller_name: i.product?.seller?.full_name || null
+    }))
+  }));
+}
