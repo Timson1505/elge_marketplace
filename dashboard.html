@@ -190,6 +190,35 @@
     </div>
   </section>
 
+  <!-- =================== ПРОДАВЦЫ (только admin) =================== -->
+<section id="tabSellers" class="hidden">
+  <div class="dash-card">
+    <header class="sellers-head">
+      <div>
+        <span class="eyebrow">Башкаруу</span>
+        <h2 style="margin:4px 0 0">Сатуучулар <span class="muted" id="sellersCount"></span></h2>
+      </div>
+      <button class="text-button" id="refreshSellers" type="button">🔄 Жаңыртуу</button>
+    </header>
+
+    <div class="sellers-filter">
+      <input type="search" id="sellersSearch" placeholder="🔍 Аты, email же телефон боюнча издөө...">
+      <select id="sellersRoleFilter">
+        <option value="all">Баары</option>
+        <option value="seller">Сатуучулар</option>
+        <option value="admin">Админдер</option>
+      </select>
+    </div>
+
+    <div class="sellers-list" id="sellersList"></div>
+
+    <div class="empty-state hidden" id="sellersEmpty">
+      <div class="empty-icon">👥</div>
+      <h3>Сатуучулар табылган жок</h3>
+      <p>Издөө сөзүн өзгөртүп көрүңүз.</p>
+    </div>
+  </div>
+</section>
 </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
