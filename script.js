@@ -467,11 +467,6 @@ $("#markPaid").addEventListener("click", async () => {
   showCheckoutStep("done");
 });
 
-$("#payLater").addEventListener("click", () => {
-  $("#doneOrderId").textContent = state.currentOrderId || "—";
-  showCheckoutStep("done");
-});
-
 $("#closeDone").addEventListener("click", finishOrder);
 
 /* AUTH */
