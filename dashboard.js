@@ -79,3 +79,8 @@ function renderOrders() {
     </div>
   `).join("");
 }
+
+  // ✳ Автообновление заказов каждые 20 секунд (только для вкладки «Заказы»)
+  setInterval(() => {
+    if (!$("#tabOrders").classList.contains("hidden")) loadOrders();
+  }, 20000);
