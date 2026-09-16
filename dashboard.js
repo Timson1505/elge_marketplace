@@ -28,7 +28,7 @@ const log = (...a) => DEBUG && console.log("[ELGE dash]", ...a);
     state.profile = await getProfile(state.user.id);
     log("profile:", state.profile);
 
-    if (!state.profile || !["seller","admin"].includes(state.profile.role)) {
+    if (!state.profile || !["seller", "admin"].includes(state.profile.role)) {
       alert("Бул бетке кирүү укугуңуз жок");
       location.href = "index.html";
       return;
@@ -40,27 +40,38 @@ const log = (...a) => DEBUG && console.log("[ELGE dash]", ...a);
     state.categories = await fetchCategories();
     renderCategorySelect();
 
+    // Вкладки и их видимость (после того как profile загружен!)
+    initTabs();
+    initSellersTab();
+
     await loadMyProducts();
     await loadOrders();
+
     log("init complete");
   } catch (e) {
     console.error("[ELGE dash] init error:", e);
   }
 })();
 
-  initSellersTab();
-
 /* ================= ТАБЫ ================= */
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    const tab = btn.dataset.tab;
-    $("#tabProducts").classList.toggle("hidden", tab !== "products");
-    $("#tabOrders").classList.toggle("hidden",   tab !== "orders");
-    if (tab === "orders") loadOrders();  // ← сразу обновляем при переходе
+function initTabs() {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const tab = btn.dataset.tab;
+
+      $("#tabProducts").classList.toggle("hidden", tab !== "products");
+      $("#tabOrders").classList.toggle("hidden",   tab !== "orders");
+      const sTab = $("#tabSellers");
+      if (sTab) sTab.classList.toggle("hidden", tab !== "sellers");
+
+      if (tab === "orders")  loadOrders();
+      if (tab === "sellers") loadSellers();
+    });
   });
-});
+}
 
 /* ================= КАТЕГОРИИ ================= */
 function renderCategorySelect() {
@@ -76,22 +87,31 @@ function renderCategorySelect() {
 async function loadMyProducts() {
   const isAdmin = state.profile.role === "admin";
 
-  // ✳ Для админа — тянем также профиль продавца
-  const selectQuery = isAdmin
-    ? "*, seller:seller_id(id, full_name, phone, role)"
-    : "*";
-
   const { data, error } = await sb
     .from("products")
-    .select(selectQuery)
+    .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) { console.error(error); return; }
+  if (error) { console.error("[ELGE dash] loadMyProducts:", error); return; }
 
-  state.myProducts = isAdmin
-    ? (data || [])
-    : (data || []).filter(p => p.seller_id === state.user.id);
+  let rows = data || [];
 
+  // Продавец видит только свои товары
+  if (!isAdmin) rows = rows.filter(p => p.seller_id === state.user.id);
+
+  // Админ — подтянем профиль продавца для каждого товара
+  if (isAdmin && rows.length) {
+    const ids = [...new Set(rows.map(p => p.seller_id).filter(Boolean))];
+    const { data: profs } = await sb
+      .from("profiles")
+      .select("id, full_name, phone, role")
+      .in("id", ids);
+
+    const map = Object.fromEntries((profs || []).map(p => [p.id, p]));
+    rows = rows.map(p => ({ ...p, seller: map[p.seller_id] || null }));
+  }
+
+  state.myProducts = rows;
   renderMyProducts();
 }
 
@@ -104,20 +124,24 @@ function renderMyProducts() {
     return;
   }
 
+  const isAdmin = state.profile.role === "admin";
+
   $("#dashList").innerHTML = state.myProducts.map(p => {
     const img = (p.images && p.images[0]) || "elge_icon.png";
+    const sellerLine = (isAdmin && p.seller)
+      ? `<p class="seller-line">👤 ${p.seller.full_name || p.seller.id} · 📞 ${p.seller.phone || "—"}</p>`
+      : "";
+    const inactive = p.is_active === false
+      ? " · <b style='color:#a23d3d'>өчүрүлгөн</b>"
+      : "";
+
     return `
       <div class="dash-item">
         <img src="${img}" alt="${p.name}">
         <div>
           <h4>${p.name}</h4>
-          <p>${p.category} · ${money(p.price)}
-          ${state.profile.role === "admin" && p.seller
-           ? `<p style="font-size:12px; color:#6d7885; margin-top:2px">
-             👤 ${p.seller.full_name || p.seller.id} · 📞 ${p.seller.phone || "—"}
-     </p>`
-  : ""}
-             ${p.is_active === false ? " · <b style='color:#a23d3d'>өчүрүлгөн</b>" : ""}</p>
+          <p>${p.category} · ${money(p.price)}${inactive}</p>
+          ${sellerLine}
         </div>
         <div class="dash-actions">
           <button class="btn-edit" data-edit="${p.id}">✏️ Оңдоо</button>
@@ -233,7 +257,7 @@ $("#imageFile").addEventListener("change", async e => {
     try {
       const url = await uploadProductImage(files[i]);
       state.pendingImages.push(url);
-      $("#uploadStatus").textContent = `Жүктөлүүдө ${i+1} / ${files.length}...`;
+      $("#uploadStatus").textContent = `Жүктөлүүдө ${i + 1} / ${files.length}...`;
       renderImagePreview();
     } catch (ex) {
       console.error(ex);
@@ -286,7 +310,36 @@ async function loadOrders() {
       return;
     }
 
-    state.orders = data || [];
+    let orders = data || [];
+
+    // Для админа — подтянуть имена продавцов через product_id → seller_id → profile
+    if (state.profile.role === "admin" && orders.length) {
+      const productIds = [...new Set(
+        orders.flatMap(o => (o.order_items || []).map(i => i.product_id)).filter(Boolean)
+      )];
+
+      if (productIds.length) {
+        const { data: prods } = await sb
+          .from("products").select("id, seller_id").in("id", productIds);
+        const prodMap = Object.fromEntries((prods || []).map(p => [p.id, p.seller_id]));
+
+        const sellerIds = [...new Set(Object.values(prodMap).filter(Boolean))];
+        const { data: profs } = sellerIds.length
+          ? await sb.from("profiles").select("id, full_name").in("id", sellerIds)
+          : { data: [] };
+        const profMap = Object.fromEntries((profs || []).map(p => [p.id, p.full_name]));
+
+        orders = orders.map(o => ({
+          ...o,
+          order_items: (o.order_items || []).map(i => ({
+            ...i,
+            product_seller_name: profMap[prodMap[i.product_id]] || null
+          }))
+        }));
+      }
+    }
+
+    state.orders = orders;
     log("orders fetched:", state.orders.length);
     renderOrders();
   } catch (e) {
@@ -311,45 +364,46 @@ function renderOrders() {
     return;
   }
 
-  $("#ordersList").innerHTML = state.orders.map(o => `
-    <div class="order-card">
-      <div class="order-head">
-        <strong>№${o.id} — ${o.customer_name || "—"}</strong>
-        <span class="order-status status-${o.status}">${STATUS_LABEL[o.status] || o.status}</span>
-      </div>
-      <p style="font-size:13px; color:#6d7885; margin:2px 0">
-        📞 ${o.customer_phone || "—"} · ${new Date(o.created_at).toLocaleString("ky-KG")}
-      </p>
-      ${o.notes ? `<p style="font-size:13px; margin:6px 0">${o.notes}</p>` : ""}
-      <ul>
-        ${(o.order_items || []).map(i =>
-          `<li>${i.product_name} × ${i.quantity} — ${money(i.price * i.quantity)}</li>`
-        ).join("") || "<li style='color:#a23d3d'>Позициялар көрүнбөйт</li>"}
-      </ul>
-      <div class="order-total">Жалпы: ${money(o.total)}</div>
-      <div style="margin-top:10px">
-        <select data-status-order="${o.id}">
-          ${Object.entries(STATUS_LABEL).map(([v,l]) =>
-            `<option value="${v}" ${o.status===v?"selected":""}>${l}</option>`
-          ).join("")}
-        </select>
-      </div>
-    </div>
-  `).join("");
-}
+  const isAdmin = state.profile.role === "admin";
 
-${state.profile.role === "admin" && (o.order_items || []).length
-  ? (() => {
-      const sellers = [...new Set(
+  $("#ordersList").innerHTML = state.orders.map(o => {
+    const sellersLine = (() => {
+      if (!isAdmin) return "";
+      const names = [...new Set(
         (o.order_items || []).map(i => i.product_seller_name).filter(Boolean)
       )];
-      return sellers.length
-        ? `<p style="font-size:12px; color:#6d7885; margin:4px 0">
-             🏪 Сатуучулар: ${sellers.join(", ")}
-           </p>`
+      return names.length
+        ? `<p class="order-sellers">🏪 Сатуучулар: ${names.join(", ")}</p>`
         : "";
-    })()
-  : ""}
+    })();
+
+    const items = (o.order_items || []).map(i =>
+      `<li>${i.product_name} × ${i.quantity} — ${money(i.price * i.quantity)}</li>`
+    ).join("") || "<li style='color:#a23d3d'>Позициялар көрүнбөйт</li>";
+
+    return `
+      <div class="order-card">
+        <div class="order-head">
+          <strong>№${o.id} — ${o.customer_name || "—"}</strong>
+          <span class="order-status status-${o.status}">${STATUS_LABEL[o.status] || o.status}</span>
+        </div>
+        <p style="font-size:13px; color:#6d7885; margin:2px 0">
+          📞 ${o.customer_phone || "—"} · ${new Date(o.created_at).toLocaleString("ky-KG")}
+        </p>
+        ${o.notes ? `<p style="font-size:13px; margin:6px 0">${o.notes}</p>` : ""}
+        ${sellersLine}
+        <ul>${items}</ul>
+        <div class="order-total">Жалпы: ${money(o.total)}</div>
+        <div style="margin-top:10px">
+          <select data-status-order="${o.id}">
+            ${Object.entries(STATUS_LABEL).map(([v, l]) =>
+              `<option value="${v}" ${o.status === v ? "selected" : ""}>${l}</option>`
+            ).join("")}
+          </select>
+        </div>
+      </div>`;
+  }).join("");
+}
 
 /* автообновление раз в 20 с, только если вкладка открыта */
 setInterval(() => {
@@ -370,10 +424,10 @@ document.addEventListener("change", async e => {
   }
 });
 
-/* кнопка "🔄 Жаңыртуу" */
-const refreshBtn = $("#refreshOrders");
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", () => {
+/* кнопка "🔄 Жаңыртуу" заказов */
+const refreshOrdersBtn = $("#refreshOrders");
+if (refreshOrdersBtn) {
+  refreshOrdersBtn.addEventListener("click", () => {
     loadOrders();
     showToast("Жаңыртылды");
   });
@@ -393,25 +447,26 @@ function showToast(msg) {
 $("#logoutBtn").addEventListener("click", signOut);
 
 /* ================= ВКЛАДКА «САТУУЧУЛАР» (только admin) ================= */
-const sellersState = {
-  list: [],
-  query: "",
-  role: "all"
-};
+const sellersState = { list: [], query: "", role: "all" };
 
 function initSellersTab() {
   const btn = $("#tabSellersBtn");
+  if (!btn) return;
+
   if (state.profile?.role === "admin") btn.classList.remove("hidden");
   else btn.classList.add("hidden");
 
-  $("#refreshSellers").addEventListener("click", loadSellers);
+  const rs = $("#refreshSellers");
+  if (rs) rs.addEventListener("click", loadSellers);
 
-  $("#sellersSearch").addEventListener("input", e => {
+  const search = $("#sellersSearch");
+  if (search) search.addEventListener("input", e => {
     sellersState.query = e.target.value.toLowerCase().trim();
     renderSellers();
   });
 
-  $("#sellersRoleFilter").addEventListener("change", e => {
+  const roleSel = $("#sellersRoleFilter");
+  if (roleSel) roleSel.addEventListener("change", e => {
     sellersState.role = e.target.value;
     renderSellers();
   });
@@ -419,12 +474,12 @@ function initSellersTab() {
 
 async function loadSellers() {
   const listEl = $("#sellersList");
+  if (!listEl) return;
   listEl.innerHTML = `<p style="color:#6d7885">Жүктөлүүдө...</p>`;
 
   try {
     const { data, error } = await sb.rpc("admin_get_sellers");
     if (error) throw error;
-
     sellersState.list = data || [];
     renderSellers();
   } catch (ex) {
@@ -452,11 +507,10 @@ function renderSellers() {
       .split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
     const isAdmin = s.role === "admin";
     const agreed = !!s.agreement_at;
-    const agreeLabel = isAdmin
-      ? ""
-      : `<span class="agree-badge ${agreed ? "ok" : "no"}">
-           ${agreed ? "✓ Келишим кабыл алынган" : "⚠ Келишим кабыл алынбаган"}
-         </span>`;
+    const agreeLabel = isAdmin ? "" :
+      `<span class="agree-badge ${agreed ? "ok" : "no"}">
+         ${agreed ? "✓ Келишим кабыл алынган" : "⚠ Келишим кабыл алынбаган"}
+       </span>`;
 
     return `
       <div class="seller-card ${isAdmin ? "role-admin" : ""}">
@@ -477,15 +531,15 @@ function renderSellers() {
         <div class="seller-stats">
           <div class="seller-stat">
             <span>Товарлар</span>
-            <strong>${s.products_count}</strong>
+            <strong>${s.products_count ?? 0}</strong>
           </div>
           <div class="seller-stat">
             <span>Заказдар</span>
-            <strong>${s.orders_count}</strong>
+            <strong>${s.orders_count ?? 0}</strong>
           </div>
           <div class="seller-stat">
             <span>Сатуу</span>
-            <strong>${money(s.total_sales)}</strong>
+            <strong>${money(s.total_sales || 0)}</strong>
           </div>
         </div>
       </div>
