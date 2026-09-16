@@ -48,6 +48,8 @@ const log = (...a) => DEBUG && console.log("[ELGE dash]", ...a);
   }
 })();
 
+  initSellersTab();
+
 /* ================= ТАБЫ ================= */
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
