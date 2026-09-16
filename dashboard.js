@@ -74,32 +74,25 @@ function renderCategorySelect() {
 
 /* ================= МОИ ТОВАРЫ ================= */
 async function loadMyProducts() {
-  const listEl = $("#dashList");
-  try {
-    const { data, error } = await sb
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const isAdmin = state.profile.role === "admin";
 
-    if (error) {
-      console.error("[ELGE dash] loadMyProducts error:", error);
-      listEl.innerHTML =
-        `<p style="color:#a23d3d">Товарларды жүктөө катасы: ${error.message}</p>`;
-      return;
-    }
+  // ✳ Для админа — тянем также профиль продавца
+  const selectQuery = isAdmin
+    ? "*, seller:seller_id(id, full_name, phone, role)"
+    : "*";
 
-    log("products fetched:", data?.length);
-    const all = data || [];
-    state.myProducts = (state.profile.role === "admin")
-      ? all
-      : all.filter(p => p.seller_id === state.user.id);
+  const { data, error } = await sb
+    .from("products")
+    .select(selectQuery)
+    .order("created_at", { ascending: false });
 
-    log("myProducts:", state.myProducts.length, state.myProducts);
-    renderMyProducts();
-  } catch (e) {
-    console.error("[ELGE dash] loadMyProducts exception:", e);
-    listEl.innerHTML = `<p style="color:#a23d3d">Күтүлбөгөн ката: ${e.message || e}</p>`;
-  }
+  if (error) { console.error(error); return; }
+
+  state.myProducts = isAdmin
+    ? (data || [])
+    : (data || []).filter(p => p.seller_id === state.user.id);
+
+  renderMyProducts();
 }
 
 function renderMyProducts() {
@@ -119,6 +112,11 @@ function renderMyProducts() {
         <div>
           <h4>${p.name}</h4>
           <p>${p.category} · ${money(p.price)}
+          ${state.profile.role === "admin" && p.seller
+           ? `<p style="font-size:12px; color:#6d7885; margin-top:2px">
+             👤 ${p.seller.full_name || p.seller.id} · 📞 ${p.seller.phone || "—"}
+     </p>`
+  : ""}
              ${p.is_active === false ? " · <b style='color:#a23d3d'>өчүрүлгөн</b>" : ""}</p>
         </div>
         <div class="dash-actions">
@@ -339,6 +337,19 @@ function renderOrders() {
     </div>
   `).join("");
 }
+
+${state.profile.role === "admin" && (o.order_items || []).length
+  ? (() => {
+      const sellers = [...new Set(
+        (o.order_items || []).map(i => i.product_seller_name).filter(Boolean)
+      )];
+      return sellers.length
+        ? `<p style="font-size:12px; color:#6d7885; margin:4px 0">
+             🏪 Сатуучулар: ${sellers.join(", ")}
+           </p>`
+        : "";
+    })()
+  : ""}
 
 /* автообновление раз в 20 с, только если вкладка открыта */
 setInterval(() => {
