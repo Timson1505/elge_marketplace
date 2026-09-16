@@ -467,15 +467,3 @@ function guardProductForm() {
     saveBtn.style.cursor = "not-allowed";
   }
 }
-
-/* ====== Вызовы функции "Келишим Саясаты" ====== */
-  // ... существующий код init() ...
-  state.categories = await fetchCategories();
-  renderCategorySelect();
-
-  await loadMyProducts();
-  await loadOrders();
-
-  // ✳ НОВОЕ:
-  initAgreementTab();
-  guardProductForm();
