@@ -2209,70 +2209,52 @@ img {
 }
 
 @media (max-width: 600px) {
-  .hero-slider {
-    margin-top: 18px;
-    border-radius: 17px;
-  }
-
-  .fashion-slide {
-    min-height: 390px;
-    align-items: flex-end;
-  }
-
-  .fashion-slide::before {
-    background: linear-gradient(
-      0deg,
-      rgba(15, 17, 18, .9) 0%,
-      rgba(15, 17, 18, .55) 48%,
-      rgba(15, 17, 18, .08) 100%
-    );
-  }
-
-  .fashion-slide__image {
-    object-position: 58% center;
-  }
-
-  .fashion-slide__content {
-    width: 100%;
-    padding: 30px 25px 58px;
-  }
-
-  .fashion-slide h2 {
-    font-size: 34px;
-    letter-spacing: -.8px;
-  }
-
-  .fashion-slide p {
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
-
-  .fashion-slide__label {
-    font-size: 10px;
-    margin-bottom: 13px;
-  }
-
-  .fashion-slide__button {
-    min-height: 46px;
-    padding: 0 18px;
-  }
 
   .hero-slider .slider-arrow {
-    top: 18px;
-    width: 36px;
-    height: 36px;
+    position: absolute;
+    top: 14px;
+    z-index: 10;
+
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+
+    color: #fff;
+    font-size: 25px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transform: none;
   }
 
   .hero-slider .slider-arrow.prev {
     left: auto;
     right: 62px;
-    transform: none;
   }
 
   .hero-slider .slider-arrow.next {
-    top: 18px;
-    right: 17px;
+    right: 16px;
+    left: auto;
+  }
+
+  .hero-slider .slider-arrow:hover {
     transform: none;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .hero-slider .slider-arrow:active {
+    transform: scale(0.92);
   }
 }
 
