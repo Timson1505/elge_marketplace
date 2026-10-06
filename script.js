@@ -633,3 +633,45 @@ sb.auth.onAuthStateChange(async (_event, session) => {
   await refreshAuth();
   await loadAll();
 })();
+
+/* ========== Path to Category ==========*/
+
+document.getElementById("heroSlider")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-fashion-category]");
+  if (!button) return;
+
+  const categoryName = button.dataset.fashionCategory;
+  const categoryList = document.getElementById("categoryList");
+
+  if (!categoryList) {
+    document.getElementById("productsSection")
+      ?.scrollIntoView({ behavior: "smooth" });
+    return;
+  }
+
+  const categoryItems = [
+    ...categoryList.querySelectorAll(
+      "button, a, [role='button'], .category-card"
+    )
+  ];
+
+  const category = categoryItems.find((item) =>
+    item.textContent.trim().toLocaleLowerCase("ky")
+      .includes(categoryName.toLocaleLowerCase("ky"))
+  );
+
+  if (category) {
+    category.click();
+
+    document.getElementById("productsSection")
+      ?.scrollIntoView({ behavior: "smooth" });
+  } else {
+    document.getElementById("productsSection")
+      ?.scrollIntoView({ behavior: "smooth" });
+
+    console.warn(
+      `Категория "${categoryName}" табылган жок. ` +
+      "categoryList түзүлүшүн жана категориянын так аталышын текшериңиз."
+    );
+  }
+});
