@@ -86,22 +86,118 @@ function renderProducts() {
 }
 
 /* ============ BANNERS ============ */
-function renderBanners() {
-  $("#slides").innerHTML = state.banners.map((b, i) => `
-    <div class="slide" aria-hidden="${i !== state.slideIndex}">
-      <div class="slide-content">
-        <span class="eyebrow" style="color:#f5d37e">ELGE сунуштайт</span>
-        <h2>${b.title}</h2>
-        <p>${b.text}</p>
-        <button class="slide-button" type="button" data-banner-index="${i}">${b.button}</button>
+
+const fashionBanners = [
+  {
+    label: "ELGE FASHION · ЖАҢЫ СЕЗОН",
+    title: "Күздү жаңы стиль менен тос!",
+    description:
+      "Жылуу пальтолор, жумшак свитерлер жана күнүмдүк образдар — баары бир жерде.",
+    image:
+      "https://cdn.mos.cms.futurecdn.net/whowhatwear/posts/302641/fall-flat-shoe-outfits-302641-1663967398759-image.jpg",
+    alt: "Стильдүү күзгү пальто жана трикотаж кийим",
+    button: "Кийимдерди көрүү"
+  },
+  {
+    label: "ЗАМАНБАП СТИЛЬ",
+    title: "Өз стилиңди тап!",
+    description:
+      "Күн сайын өзгөчө көрүн. Заманбап, ыңгайлуу жана жарашыктуу кийимдерди танда.",
+    image:
+      "https://www.vermont.eu/files/responsive/1280/0/combo-hero.jpg",
+    alt: "Эркектер жана аялдар үчүн заманбап күнүмдүк кийимдер",
+    button: "Азыр сатып алуу"
+  },
+  {
+    label: "КҮНҮМДҮК МОДА",
+    title: "Ыңгайлуулук жана сулуулук!",
+    description:
+      "Сүйүктүү образыңды толукта. Күнүмдүк кийимдерди ELGEден оңой тап.",
+    image:
+      "https://dfo.com.pk/cdn/shop/files/WhatsApp_Image_2026-05-06_at_5.11.35_PM_1.jpg?v=1778136082",
+    alt: "Минималисттик стилдеги күнүмдүк кийимдер",
+    button: "Коллекцияны көрүү"
+  }
+];
+
+const slidesContainer = document.getElementById("slides");
+const dotsContainer = document.getElementById("sliderDots");
+const slider = document.getElementById("heroSlider");
+
+let currentFashionSlide = 0;
+
+if (slidesContainer && dotsContainer && slider) {
+  slidesContainer.innerHTML = fashionBanners.map((banner, index) => `
+    <article class="fashion-slide" aria-label="${index + 1}-баннер">
+      <img
+        class="fashion-slide__image"
+        src="${banner.image}"
+        alt="${banner.alt}"
+        ${index === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}
+      >
+
+      <div class="fashion-slide__content">
+        <span class="fashion-slide__label">
+          ${banner.label}
+        </span>
+
+        <h2>${banner.title}</h2>
+
+        <p>${banner.description}</p>
+
+        <button
+          type="button"
+          class="fashion-slide__button"
+          data-fashion-category="Кийим-кече"
+        >
+          ${banner.button}
+          <span aria-hidden="true">→</span>
+        </button>
       </div>
-    </div>`).join("");
+    </article>
+  `).join("");
 
-  $("#sliderDots").innerHTML = state.banners.map((_, i) => `
-    <button class="slider-dot ${i === state.slideIndex ? "active" : ""}"
-            type="button" data-slide="${i}" aria-label="${i + 1}-баннер"></button>`).join("");
+  dotsContainer.innerHTML = fashionBanners.map((_, index) => `
+    <button
+      type="button"
+      class="${index === 0 ? "active" : ""}"
+      data-slide="${index}"
+      aria-label="${index + 1}-баннерге өтүү"
+      aria-current="${index === 0 ? "true" : "false"}"
+    ></button>
+  `).join("");
 
-  updateSlider();
+  function showFashionSlide(index) {
+    currentFashionSlide =
+      (index + fashionBanners.length) % fashionBanners.length;
+
+    slidesContainer.style.transform =
+      `translateX(-${currentFashionSlide * 100}%)`;
+
+    dotsContainer.querySelectorAll("button").forEach((dot, i) => {
+      dot.classList.toggle("active", i === currentFashionSlide);
+      dot.setAttribute(
+        "aria-current",
+        i === currentFashionSlide ? "true" : "false"
+      );
+    });
+  }
+
+  document.getElementById("prevSlide")?.addEventListener("click", () => {
+    showFashionSlide(currentFashionSlide - 1);
+  });
+
+  document.getElementById("nextSlide")?.addEventListener("click", () => {
+    showFashionSlide(currentFashionSlide + 1);
+  });
+
+  dotsContainer.addEventListener("click", (event) => {
+    const dot = event.target.closest("[data-slide]");
+    if (dot) showFashionSlide(Number(dot.dataset.slide));
+  });
+
+  // Баштапкы баннерди көрсөтүү
+  showFashionSlide(0);
 }
 
 function updateSlider() {
