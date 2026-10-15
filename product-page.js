@@ -2,7 +2,7 @@
 const SITE_URL = "https://timson1505.github.io/elge_marketplace/";
 const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const moneyP = value => Number(value || 0).toLocaleString("ky-KG") + " сом";
-const canonicalProductUrl = p => SITE_URL + "product.html?id=" + encodeURIComponent(p.id);
+const canonicalProductUrl = p => SITE_URL + "products/" + encodeURIComponent(p.slug || (String(p.name).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-") + "-" + p.id)) + "/";
 const setMeta = (selector, attr, value) => {
   let el = document.querySelector(selector);
   if (!el) { el = document.createElement("meta"); if (selector.startsWith('meta[property=')) el.setAttribute("property", selector.match(/\[property="([^"]+)/)[1]); else el.setAttribute("name", selector.match(/\[name="([^"]+)/)[1]); document.head.appendChild(el); }
