@@ -141,7 +141,7 @@ function renderMyProducts() {
         <div>
           <h4>${p.name}</h4>
           <p>${p.category} · ${money(p.price)}${inactive}${p.is_promoted && (!p.promoted_until || new Date(p.promoted_until)>new Date()) ? " · ⭐ ELGE сунушу" : ""}</p>
-          <p><a href="product.html?id=${encodeURIComponent(p.id)}" target="_blank" rel="noopener">Товар шилтемесин көрүү ↗</a></p>
+          <p><a href="products/${encodeURIComponent(p.slug || (String(p.name).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-") + "-" + p.id))}/" target="_blank" rel="noopener">Товар шилтемесин көрүү ↗</a></p>
           ${sellerLine}
         </div>
         <div class="dash-actions">
