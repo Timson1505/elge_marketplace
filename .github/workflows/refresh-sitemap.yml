@@ -1,0 +1,30 @@
+name: Refresh product sitemap
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * *"
+permissions:
+  contents: write
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Generate sitemap from public active products
+        env:
+          SITE_URL: https://timson1505.github.io/elge_marketplace/
+        run: node scripts/generate-sitemap.mjs
+      - name: Commit updated sitemap
+        run: |
+          if git diff --quiet -- sitemap.xml; then
+            echo "Sitemap unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sitemap.xml
+          git commit -m "chore: refresh product sitemap"
+          git push
