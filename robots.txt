@@ -10,7 +10,6 @@ Allow: /
 # Закрываем от индексации служебные и личные страницы
 Disallow: /dashboard.html
 Disallow: /auth.html
-Disallow: /dashboard.html
 Disallow: /product.html?*
 Disallow: /*?*token=
 Disallow: /*?*code=
