@@ -140,7 +140,8 @@ function renderMyProducts() {
         <img src="${img}" alt="${p.name}">
         <div>
           <h4>${p.name}</h4>
-          <p>${p.category} · ${money(p.price)}${inactive}</p>
+          <p>${p.category} · ${money(p.price)}${inactive}${p.is_promoted && (!p.promoted_until || new Date(p.promoted_until)>new Date()) ? " · ⭐ ELGE сунушу" : ""}</p>
+          <p><a href="product.html?id=${encodeURIComponent(p.id)}" target="_blank" rel="noopener">Товар шилтемесин көрүү ↗</a></p>
           ${sellerLine}
         </div>
         <div class="dash-actions">
@@ -175,7 +176,9 @@ $("#productForm").addEventListener("submit", async e => {
     rating:      Number(f.elements.rating.value || 5),
     description: f.elements.description.value.trim(),
     images,
-    is_active:   true
+    is_active:   true,
+    is_promoted: !!f.elements.is_promoted?.checked,
+    promoted_until: f.elements.is_promoted?.checked ? new Date(Date.now() + 7*24*60*60*1000).toISOString() : null
   };
 
   if (state.editingId) {
@@ -212,6 +215,7 @@ document.addEventListener("click", async e => {
     f.elements.category.value    = p.category;
     f.elements.rating.value      = p.rating || 5;
     f.elements.description.value = p.description || "";
+    if (f.elements.is_promoted) f.elements.is_promoted.checked = !!p.is_promoted && (!p.promoted_until || new Date(p.promoted_until)>new Date());
 
     renderImagePreview();
     $("#formTitle").textContent = "Товарды оңдоо";
