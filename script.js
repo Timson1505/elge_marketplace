@@ -44,11 +44,14 @@ function mapProduct(row) {
 function renderCategories() {
   const all = [{ name: "Баары", icon: "◉" }, ...state.categories];
   $("#categoryList").innerHTML = all.map(c => `
+    <div class="category-entry">
     <button class="category-button ${state.category === c.name ? "active" : ""}"
             type="button" data-category="${c.name}">
       <span aria-hidden="true">${c.icon}</span>
       <span>${c.name}</span>
-    </button>`).join("");
+    </button>
+    ${c.name === "Баары" ? "" : `<a class="category-seo-link" href="categories/${encodeURIComponent(String(c.name).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-").replace(/^-|-$/g, ""))}/">Категорияны ачуу ↗</a>`}
+    </div>`).join("");
 }
 
 /* ============ PRODUCTS ============ */
@@ -77,7 +80,7 @@ function renderProducts() {
         <span class="category-badge">${p.category}</span>
         ${p.isPromoted ? '<span class="promoted-product-badge">ELGE сунуштайт</span>' : ""}
         <h3 class="product-title">${p.name}</h3>
-        <a class="product-detail-link" href="product.html?id=${encodeURIComponent(p.id)}" aria-label="${p.name} товар барагын ачуу">Толук маалымат ↗</a>
+        <a class="product-detail-link" href="products/${encodeURIComponent(p.slug)}/" aria-label="${p.name} товар барагын ачуу">Толук маалымат ↗</a>
         <div class="product-meta">
           <span class="rating">★ ${p.rating}</span>
           <div class="price-box">
