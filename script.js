@@ -433,6 +433,7 @@ document.addEventListener("click", e => {
   const add = e.target.closest("[data-add-id]");
   if (add) { e.stopPropagation(); addToCart(Number(add.dataset.addId)); return; }
 
+  if (e.target.closest(".product-detail-link")) return;
   const card = e.target.closest("[data-product-id]");
   if (card) { openProduct(Number(card.dataset.productId)); return; }
 
