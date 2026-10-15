@@ -31,7 +31,12 @@ function mapProduct(row) {
     icon: row.icon || "📦",
     description: row.description || "",
     images: (row.images && row.images.length) ? row.images : ["images/placeholder.png"],
-    sellerId: row.seller_id
+    sellerId: row.seller_id,
+    slug: row.slug || `${String(row.name || "product").toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-")}-${row.id}`,
+    seoTitle: row.seo_title || "",
+    metaDescription: row.meta_description || "",
+    isPromoted: Boolean(row.is_promoted && (!row.promoted_until || new Date(row.promoted_until) > new Date())),
+    promotedUntil: row.promoted_until || null
   };
 }
 
@@ -53,7 +58,7 @@ function getFilteredProducts() {
     const catMatch = state.category === "Баары" || p.category === state.category;
     const text = `${p.name} ${p.category} ${p.description}`.toLocaleLowerCase("ky");
     return catMatch && (!q || text.includes(q));
-  });
+  }).sort((a,b) => Number(b.isPromoted) - Number(a.isPromoted));
 }
 
 function renderProducts() {
@@ -70,7 +75,9 @@ function renderProducts() {
       </div>
       <div class="product-body">
         <span class="category-badge">${p.category}</span>
+        ${p.isPromoted ? '<span class="promoted-product-badge">ELGE сунуштайт</span>' : ""}
         <h3 class="product-title">${p.name}</h3>
+        <a class="product-detail-link" href="product.html?id=${encodeURIComponent(p.id)}" aria-label="${p.name} товар барагын ачуу">Толук маалымат ↗</a>
         <div class="product-meta">
           <span class="rating">★ ${p.rating}</span>
           <div class="price-box">
@@ -458,6 +465,12 @@ document.addEventListener("click", e => {
 });
 
 $("#searchInput").addEventListener("input", e => { state.query = e.target.value; renderProducts(); });
+const initialParams = new URLSearchParams(location.search);
+if (initialParams.get("q")) { state.query = initialParams.get("q"); $("#searchInput").value = state.query; }
+if (initialParams.get("category")) {
+  state.category = initialParams.get("category");
+  document.querySelector("#productsTitle").textContent = state.category;
+}
 
 $("#allCategories").addEventListener("click", () => {
   state.category = "Баары";
