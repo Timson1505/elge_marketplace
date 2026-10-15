@@ -1,3 +1,4 @@
+/* SEO page generator v2: static product/category pages plus sitemap. */
 import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 const root = new URL("../", import.meta.url);
