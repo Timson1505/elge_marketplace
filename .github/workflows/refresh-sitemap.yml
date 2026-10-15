@@ -1,6 +1,15 @@
 name: Refresh SEO pages and sitemap
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "scripts/generate-sitemap.mjs"
+      - "supabase.js"
+      - "script.js"
+      - "dashboard.js"
+      - "index.html"
+      - "style.css"
+      - ".github/workflows/refresh-sitemap.yml"
   schedule:
     - cron: "17 4 * * *"
 permissions:
