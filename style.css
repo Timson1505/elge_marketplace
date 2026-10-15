@@ -2522,3 +2522,10 @@ img {
     transform: translateY(-50%) scale(0.9) !important;
   }
 }
+
+
+/* SEO category and product-card links */
+.category-entry { display: grid; gap: 5px; min-width: 0; }
+.category-seo-link { display: block; text-align: center; font-size: 11px; color: var(--green-dark); text-decoration: underline; padding: 2px 0 4px; }
+.promoted-product-badge { display: inline-block; margin: 3px 0 6px; padding: 4px 8px; border-radius: 999px; background: #fff2c2; color: #785900; font-size: 11px; font-weight: 800; }
+.product-detail-link { display: inline-block; margin: 0 0 10px; color: var(--green-dark); font-size: 12px; font-weight: 800; text-decoration: underline; }
